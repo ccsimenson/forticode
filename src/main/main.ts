@@ -1,45 +1,87 @@
-import { app, BrowserWindow, ipcMain, session } from 'electron';
+import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { CspValidator } from '@modules/csp/CspValidator';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+// Keep a global reference of the window object to prevent garbage collection
+let mainWindow: BrowserWindow | null = null;
+
+// Initialize CSP Validator
+const cspValidator = CspValidator.getInstance();
+
+// Register IPC handlers
+function registerIpcHandlers() {
+  cspValidator.registerIpcHandlers(ipcMain);
+  
+  // Add any additional IPC handlers here
+  ipcMain.handle('app:getVersion', () => {
+    return app.getVersion();
+  });
+}
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const createWindow = () => {
+// Environment variables from Vite
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
+declare const MAIN_WINDOW_VITE_NAME: string;
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+const createWindow = async () => {
   // Create the browser window
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
     webPreferences: {
-      nodeIntegration: true,
+      nodeIntegration: false,
       contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      webgl: false,
+      plugins: false
     },
     title: 'Electron Security Auditor',
-    icon: path.join(__dirname, '../assets/icon.png')
+    icon: path.join(__dirname, '../../assets/icon.png')
   });
 
-  // Load the index.html of the app
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+  // Load the app
+  if (process.env['NODE_ENV'] === 'development') {
+    // In development, load from the Vite dev server
+    await mainWindow.loadURL('http://localhost:3000');
+    mainWindow.webContents.openDevTools();
+  } else if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    // In development with Vite
+    await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
-    mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+    // In production, load the built files
+    await mainWindow.loadFile(
+      path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`)
+    );
   }
 
-  // Open the DevTools in development mode
-  if (process.env.NODE_ENV === 'development') {
-    mainWindow.webContents.openDevTools();
-  }
+  // Handle external links
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+
+  // Emitted when the window is closed
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
 };
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   // Set up CSP
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -57,6 +99,10 @@ app.whenReady().then(() => {
     });
   });
 
+  // Register IPC handlers
+  registerIpcHandlers();
+  
+  // Create the main window
   createWindow();
 
   app.on('activate', () => {
@@ -74,6 +120,3 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
-
-// In this file you can include the rest of your app's specific main process code.
-// You can also put them in separate files and import them here.

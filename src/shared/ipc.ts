@@ -52,24 +52,34 @@ export interface IpcResponse<T = any> {
 }
 
 // Define specific request/response types for each channel
-export type CspValidationRequest = {
+export interface CspValidationRequest {
   csp: string;
   filePath?: string;
-};
+}
 
-export type CspValidationResponse = {
+// Extended error information for CSP validation
+export interface CspValidationError {
+  directive: string;
+  error: string;
+  line?: number;
+  column?: number;
+}
+
+// Extended warning information for CSP validation
+export interface CspValidationWarning {
+  directive: string;
+  warning: string;
+  suggestion: string;
+  line?: number;
+  column?: number;
+}
+
+export interface CspValidationResponse {
   isValid: boolean;
-  errors: Array<{
-    directive: string;
-    error: string;
-    line?: number;
-    column?: number;
-  }>;
-  warnings: Array<{
-    directive: string;
-    warning: string;
-    suggestion: string;
-  }>;
+  errors: CspValidationError[];
+  warnings: CspValidationWarning[];
+  recommendations: string[];
+  parsedDirectives: Record<string, string[]>;
 };
 
 export type SecurityScanRequest = {

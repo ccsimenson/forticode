@@ -15,12 +15,17 @@ export class CspValidator {
   /**
    * Validates a CSP string against security best practices
    */
-  public validateCsp(csp: string, filePath?: string): CspValidationResponse {
+  public validateCsp(csp: string, _filePath?: string): CspValidationResponse {
     const result: CspValidationResponse = {
       isValid: true,
       errors: [],
-      warnings: []
+      warnings: [],
+      recommendations: [],
+      parsedDirectives: {}
     };
+    
+    // Parse the CSP directives
+    this.parseDirectives(csp, result);
 
     // Check for common CSP misconfigurations
     this.checkForUnsafeDirectives(csp, result);
@@ -44,6 +49,7 @@ export class CspValidator {
     allowEval?: boolean;
     allowedDomains?: string[];
   } = {}): string {
+    // Initialize with all required directives
     const directives: Record<string, string[]> = {
       'default-src': ["'self'"],
       'script-src': ["'self'"],
@@ -62,23 +68,23 @@ export class CspValidator {
       'block-all-mixed-content': []
     };
 
-    // Handle options
-    if (options.allowInlineScripts) {
-      directives['script-src'].push("'unsafe-inline'");
+    // Safely handle options with array spread to ensure immutability
+    if (options?.allowInlineScripts) {
+      directives['script-src'] = [...(directives['script-src'] || []), "'unsafe-inline'"];
     }
 
-    if (options.allowEval) {
-      directives['script-src'].push("'unsafe-eval'");
+    if (options?.allowEval) {
+      directives['script-src'] = [...(directives['script-src'] || []), "'unsafe-eval'"];
     }
 
-    if (options.allowedDomains && options.allowedDomains.length > 0) {
+    if (options?.allowedDomains?.length) {
       const allowed = options.allowedDomains.filter(domain => 
         domain && domain.trim() !== '' && domain !== 'self'
       );
       
       if (allowed.length > 0) {
-        directives['connect-src'].push(...allowed);
-        directives['img-src'].push(...allowed);
+        directives['connect-src'] = [...(directives['connect-src'] || []), ...allowed];
+        directives['img-src'] = [...(directives['img-src'] || []), ...allowed];
       }
     }
 
@@ -94,7 +100,28 @@ export class CspValidator {
   /**
    * Checks for unsafe directives in the CSP
    */
+  /**
+   * Parses the CSP string into a structured format
+   */
+  private parseDirectives(csp: string, result: CspValidationResponse) {
+    if (!csp) return;
+    
+    const directives = csp.split(';').map(d => d.trim()).filter(Boolean);
+    
+    for (const directive of directives) {
+      const [name, ...values] = directive.split(/\s+/);
+      if (name && values.length > 0) {
+        result.parsedDirectives[name] = values;
+      }
+    }
+  }
+
+  /**
+   * Checks for unsafe directives in the CSP
+   */
   private checkForUnsafeDirectives(csp: string, result: CspValidationResponse) {
+    if (!csp) return;
+    
     const unsafeDirectives = [
       { directive: 'unsafe-inline', message: 'Allows inline scripts which can be a security risk' },
       { directive: 'unsafe-eval', message: 'Allows eval() which can be a security risk' },
@@ -117,6 +144,7 @@ export class CspValidator {
    * Checks for missing recommended directives
    */
   private checkForMissingDirectives(csp: string, result: CspValidationResponse) {
+    if (!csp) return;
     const recommendedDirectives = [
       'default-src',
       'script-src',
@@ -147,6 +175,7 @@ export class CspValidator {
    * Checks for deprecated directives
    */
   private checkForDeprecatedDirectives(csp: string, result: CspValidationResponse) {
+    if (!csp) return;
     const deprecatedDirectives = [
       { directive: 'referrer', replacement: 'Referrer-Policy header' },
       { directive: 'plugin-types', replacement: 'object-src and/or media-src' },
@@ -168,6 +197,7 @@ export class CspValidator {
    * Checks for insecure sources in the CSP
    */
   private checkForInsecureSources(csp: string, result: CspValidationResponse) {
+    if (!csp) return;
     const insecurePatterns = [
       { pattern: 'http://', message: 'Insecure HTTP protocol' },
       { pattern: '*.example.com', message: 'Wildcard subdomains can be insecure' },

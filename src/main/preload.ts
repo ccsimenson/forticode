@@ -1,35 +1,137 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 import { IpcChannels } from '@shared/ipc';
+
+// Define a custom interface for our exposed API
+declare global {
+  interface Window {
+    electron: {
+      ipcRenderer: {
+        send(channel: string, ...args: any[]): void;
+        on(channel: string, listener: (...args: any[]) => void): () => void;
+        once(channel: string, listener: (...args: any[]) => void): void;
+        removeAllListeners(channel: string): void;
+        invoke(channel: string, ...args: any[]): Promise<any>;
+      };
+      versions: {
+        node: string;
+        chrome: string;
+        electron: string;
+      };
+    };
+  }
+}
+
+// Whitelist of valid channels
+const validChannels = Object.values(IpcChannels);
+
+// Helper function to validate IPC channels
+const isValidChannel = (channel: string): boolean => {
+  return validChannels.includes(channel as IpcChannels);
+};
+
+// Create a proxy handler to validate IPC calls
+const ipcRendererProxy = {
+  get(_: any, channel: string) {
+    return (...args: any[]) => {
+      if (typeof channel === 'string' && !isValidChannel(channel)) {
+        console.warn(`Blocked access to IPC channel: ${channel}`);
+        return Promise.reject(new Error(`Access to IPC channel '${channel}' is not allowed`));
+      }
+      
+      // @ts-ignore - Dynamic access to ipcRenderer methods
+      const method = ipcRenderer[channel];
+      if (typeof method === 'function') {
+        return method.apply(ipcRenderer, args);
+      }
+      
+      return undefined;
+    };
+  },
+  
+  set() {
+    return false; // Prevent modifications
+  },
+  
+  deleteProperty() {
+    return false; // Prevent deletions
+  },
+  
+  ownKeys() {
+    return []; // Hide all properties
+  },
+  
+  has() {
+    return false; // Hide all properties
+  },
+  
+  getOwnPropertyDescriptor() {
+    return undefined; // Hide property descriptors
+  }
+};
+
+// Create a custom IPC renderer with validation
+const customIpcRenderer = new Proxy({}, ipcRendererProxy);
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electron', {
   ipcRenderer: {
-    send: (channel: string, ...args: any[]) => {
-      // Whitelist channels
-      const validChannels = Object.values(IpcChannels);
-      if (validChannels.includes(channel as IpcChannels)) {
+    send: (channel: string, ...args: any[]): void => {
+      if (isValidChannel(channel)) {
         ipcRenderer.send(channel, ...args);
+      } else {
+        console.warn(`Attempted to send to unregistered channel: ${channel}`);
       }
     },
-    on: (channel: string, func: (...args: any[]) => void) => {
-      const validChannels = Object.values(IpcChannels);
-      if (validChannels.includes(channel as IpcChannels)) {
-        // Deliberately strip event as it includes `sender`
-        ipcRenderer.on(channel, (event, ...args) => func(...args));
+    
+    on: (channel: string, listener: (...args: any[]) => void): (() => void) => {
+      if (isValidChannel(channel)) {
+        // Strip event as it includes `sender`
+        const subscription = (_event: IpcRendererEvent, ...args: any[]) => listener(...args);
+        ipcRenderer.on(channel, subscription);
+        
+        // Return cleanup function
+        return () => {
+          ipcRenderer.removeListener(channel, subscription);
+        };
+      }
+      
+      console.warn(`Attempted to listen to unregistered channel: ${channel}`);
+      return () => {}; // Return empty cleanup function
+    },
+    
+    once: (channel: string, listener: (...args: any[]) => void): void => {
+      if (isValidChannel(channel)) {
+        // Strip event as it includes `sender`
+        ipcRenderer.once(channel, (_event, ...args) => listener(...args));
+      } else {
+        console.warn(`Attempted to listen once to unregistered channel: ${channel}`);
       }
     },
-    removeAllListeners: (channel: string) => {
-      ipcRenderer.removeAllListeners(channel);
-    },
-    invoke: (channel: string, ...args: any[]) => {
-      const validChannels = Object.values(IpcChannels);
-      if (validChannels.includes(channel as IpcChannels)) {
-        return ipcRenderer.invoke(channel, ...args);
+    
+    removeAllListeners: (channel: string): void => {
+      if (isValidChannel(channel)) {
+        ipcRenderer.removeAllListeners(channel);
+      } else {
+        console.warn(`Attempted to remove listeners from unregistered channel: ${channel}`);
       }
+    },
+    
+    invoke: async (channel: string, ...args: any[]): Promise<any> => {
+      if (isValidChannel(channel)) {
+        try {
+          return await ipcRenderer.invoke(channel, ...args);
+        } catch (error) {
+          console.error(`Error invoking ${channel}:`, error);
+          throw error;
+        }
+      }
+      
+      console.warn(`Attempted to invoke unregistered channel: ${channel}`);
       return Promise.reject(new Error(`Invalid channel: ${channel}`));
     }
   },
+  
   // Add any other methods you want to expose to the renderer process
   versions: {
     node: process.versions.node,
@@ -37,3 +139,6 @@ contextBridge.exposeInMainWorld('electron', {
     electron: process.versions.electron
   }
 });
+
+// Log that preload script has been loaded
+console.log('Preload script loaded');
