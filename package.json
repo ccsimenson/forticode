@@ -1,0 +1,125 @@
+{
+  "name": "electron-security-auditor",
+  "version": "1.0.0",
+  "description": "A comprehensive security auditing tool for Electron.js and Node.js applications",
+  "main": "dist/main/main.js",
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/yourusername/electron-security-auditor#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/electron-security-auditor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/electron-security-auditor/issues"
+  },
+  "keywords": [
+    "electron",
+    "security",
+    "audit",
+    "csp",
+    "content-security-policy",
+    "vulnerability",
+    "scanner"
+  ],
+  "scripts": {
+    "start": "electron .",
+    "dev": "concurrently \"cross-env NODE_ENV=development electronmon .\" \"wait-on http://localhost:3000 && tsc -w -p .\"",
+    "build": "npm run build:main && npm run build:renderer",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "vite build",
+    "watch:main": "tsc -w -p tsconfig.main.json",
+    "watch:renderer": "vite",
+    "package": "npm run build && electron-builder build --dir",
+    "dist": "npm run build && electron-builder build",
+    "postinstall": "electron-builder install-app-deps",
+    "lint": "eslint --ext .ts,.tsx .",
+    "format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
+    "test": "jest"
+  },
+  "build": {
+    "appId": "com.electron.security.auditor",
+    "productName": "Electron Security Auditor",
+    "copyright": "Copyright © 2025",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "assets/icon.png",
+      "category": "Development"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "publishConfig": {
+    "provider": "github",
+    "owner": "yourusername",
+    "repo": "electron-security-auditor"
+  },
+  "devDependencies": {
+    "@electron/notarize": "^3.0.1",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^22.15.18",
+    "@types/react": "^19.1.4",
+    "@types/react-dom": "^19.1.5",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
+    "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^36.2.0",
+    "electron-builder": "^26.0.12",
+    "electron-monitor": "^0.0.8",
+    "electron-updater": "^6.6.2",
+    "eslint": "^9.26.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.1.3",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "vite": "^5.2.8",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@monaco-editor/react": "^4.7.0",
+    "@mui/icons-material": "^7.1.0",
+    "@mui/material": "^7.1.0",
+    "electron-squirrel-startup": "^1.0.0",
+    "node-fetch": "^2.7.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^6.22.3"
+  }
+}
