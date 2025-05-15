@@ -1,17 +1,17 @@
 {
-  "name": "electron-security-auditor",
+  "name": "forticode",
   "version": "1.0.0",
-  "description": "A comprehensive security auditing tool for Electron.js and Node.js applications",
+  "description": "An Electron-based security auditing tool for CSP compliance.",
   "main": "dist/main/main.js",
-  "author": "Your Name <your.email@example.com>",
+  "author": "Cory C.",
   "license": "MIT",
-  "homepage": "https://github.com/yourusername/electron-security-auditor#readme",
+  "homepage": "https://github.com/ccsimenson/forticode#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/electron-security-auditor.git"
+    "url": "https://github.com/ccsimenson/forticode.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/electron-security-auditor/issues"
+    "url": "https://github.com/ccsimenson/forticode/issues"
   },
   "keywords": [
     "electron",
@@ -38,9 +38,9 @@
     "test": "jest"
   },
   "build": {
-    "appId": "com.electron.security.auditor",
-    "productName": "Electron Security Auditor",
-    "copyright": "Copyright © 2025",
+    "appId": "com.forticode.security.auditor",
+    "productName": "FortiCode",
+    "copyright": "Copyright © 2025 Cory C. Simenson.",
     "directories": {
       "output": "release"
     },
@@ -79,8 +79,8 @@
   },
   "publishConfig": {
     "provider": "github",
-    "owner": "yourusername",
-    "repo": "electron-security-auditor"
+    "owner": "ccsimenson",
+    "repo": "forticode"
   },
   "devDependencies": {
     "@electron/notarize": "^3.0.1",
