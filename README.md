@@ -1,7 +1,9 @@
 <div align="center">
+  <img src="FortiCode logo.png" alt="FortiCode Logo" height="100">
+  <img src="Forticode_logo_text.png" alt="FortiCode Logo with Text" height="100">
   <h1>FortiCode</h1>
   <p>A powerful security auditing tool for Electron.js applications, specializing in Content Security Policy (CSP) validation and compliance.</p>
-  
+
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
   [![GitHub stars](https://img.shields.io/github/stars/ccsimenson/forticode?style=social)](https://github.com/ccsimenson/forticode/stargazers)
   [![GitHub issues](https://img.shields.io/github/issues/ccsimenson/forticode)](https://github.com/ccsimenson/forticode/issues)
@@ -133,6 +135,15 @@ Please read our [Contribution Guide](docs/contributing/contribution-guide.md) fo
 
 For developers looking to contribute code, check out our [Developer Documentation](docs/development/setup.md) to get started with the development environment.
 
+## 📚 Documentation
+
+For detailed documentation, including API reference and development guides, please visit our [documentation](docs/).
+
+Key guides:
+- [Getting Started](docs/development/setup.md)
+- [Performance Optimization](docs/guides/performance.md)
+- [API Reference](docs/api/csp-validator.md)
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -149,6 +160,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Material-UI](https://mui.com/)
 - [Vite](https://vitejs.dev/)
 
-## 📅 Roadmap
+## 🛠️ Need Help?
 
-See our [ROADMAP.md](ROADMAP.md) for planned features and future development.
+- [Troubleshooting Guide](docs/troubleshooting.md) - Solve common issues
+- [Getting Help](docs/getting-help.md) - Community support and resources
+- [Report an Issue](https://github.com/ccsimenson/forticode/issues) - Found a bug?
+
+## 📅 Version Information
+
+- [Changelog](CHANGELOG.md) - Release history and changes
+- [Upgrade Guide](docs/guides/upgrade-guide.md) - How to upgrade between versions
+- [Roadmap](ROADMAP.md) - Planned features and future development

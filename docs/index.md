@@ -7,6 +7,7 @@ Welcome to the FortiCode developer documentation! This documentation is designed
 - [Development Setup](development/setup.md) - How to set up your development environment
 - [Project Structure](development/structure.md) - Overview of the project's architecture
 - [Coding Standards](development/coding-standards.md) - Code style and best practices
+- [Getting Help](getting-help.md) - Support and community resources
 
 ## API Reference
 
@@ -19,6 +20,7 @@ Welcome to the FortiCode developer documentation! This documentation is designed
 - [Adding New Security Checks](guides/adding-checks.md) - How to add new security validation rules
 - [Testing](guides/testing.md) - How to write and run tests
 - [Debugging](guides/debugging.md) - Debugging tips and tricks
+- [Performance Guide](guides/performance.md) - Optimization and CSP validation performance
 
 ## Contributing
 
@@ -28,6 +30,8 @@ Welcome to the FortiCode developer documentation! This documentation is designed
 
 ## Additional Resources
 
+- [Changelog](../../CHANGELOG.md) - Release history and version changes
+- [Upgrade Guide](guides/upgrade-guide.md) - Version upgrade instructions
 - [FAQ](faq.md) - Frequently asked questions
-- [Troubleshooting](troubleshooting.md) - Common issues and solutions
+- [Troubleshooting Guide](troubleshooting.md) - Common issues and debugging tips
 - [Glossary](glossary.md) - Terminology used in the project
