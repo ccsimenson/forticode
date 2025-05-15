@@ -24,12 +24,13 @@
   ],
   "scripts": {
     "start": "electron .",
-    "dev": "concurrently \"cross-env NODE_ENV=development electronmon .\" \"wait-on http://localhost:3000 && tsc -w -p .\"",
+    "dev": "concurrently -k \"cross-env NODE_ENV=development electronmon .\" \"vite\" \"wait-on tcp:3000 && tsc -w -p .\"",
     "build": "npm run build:main && npm run build:renderer",
     "build:main": "tsc -p tsconfig.main.json",
     "build:renderer": "vite build",
     "watch:main": "tsc -w -p tsconfig.main.json",
-    "watch:renderer": "vite",
+    "watch:renderer": "vite --host",
+    "preview": "vite preview --port 3000",
     "package": "npm run build && electron-builder build --dir",
     "dist": "npm run build && electron-builder build",
     "postinstall": "electron-builder install-app-deps",
@@ -110,6 +111,7 @@
     "wait-on": "^7.2.0"
   },
   "dependencies": {
+    "electron-devtools-installer": "^3.2.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@monaco-editor/react": "^4.7.0",

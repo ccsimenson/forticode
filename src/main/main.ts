@@ -8,6 +8,9 @@ if (require('electron-squirrel-startup')) {
   app.quit();
 }
 
+// Check if we're in development mode
+const isDevelopment = process.env.NODE_ENV === 'development' || process.env.ELECTRON_IS_DEV === '1';
+
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow: BrowserWindow | null = null;
 
@@ -52,12 +55,29 @@ const createWindow = async () => {
   });
 
   // Load the app
-  if (process.env['NODE_ENV'] === 'development') {
-    // In development, load from the Vite dev server
+  if (isDevelopment) {
+    // In development, load from the Vite dev server with HMR
     await mainWindow.loadURL('http://localhost:3000');
+    
+    // Open dev tools in development
     mainWindow.webContents.openDevTools();
+    
+    // Install React and Redux devtools in development
+    try {
+      const {
+        default: installExtension,
+        REACT_DEVELOPER_TOOLS,
+        REDUX_DEVTOOLS,
+      } = await import('electron-devtools-installer');
+      
+      await installExtension([REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS], {
+        loadExtensionOptions: { allowFileAccess: true },
+      });
+    } catch (error) {
+      console.error('Failed to install devtools:', error);
+    }
   } else if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    // In development with Vite
+    // In development with Vite (fallback)
     await mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
     // In production, load the built files
@@ -82,7 +102,7 @@ const createWindow = async () => {
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set up CSP
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({

@@ -26,5 +26,18 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    strictPort: true,
+    hmr: {
+      protocol: 'ws',
+      host: 'localhost',
+      port: 3000
+    },
+  },
+  // Required for HMR in Electron
+  define: {
+    'process.env': {}
+  },
+  optimizeDeps: {
+    exclude: ['electron'],
   },
 });

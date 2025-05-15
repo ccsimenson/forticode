@@ -17,7 +17,7 @@ To become the go-to security auditing solution for Electron applications, provid
 
 ### 🛠️ Phase 2: Development Experience (In Progress)
 - [x] Set up development environment with Vite
-- [ ] Hot module replacement (HMR) for faster development
+- [x] Hot module replacement (HMR) for faster development
 - [x] Automated testing setup (Jest + Testing Library)
 - [x] CI/CD pipeline (GitHub Actions)
 - [ ] Developer documentation
