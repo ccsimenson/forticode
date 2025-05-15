@@ -2,9 +2,9 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "target": "ES2020",
-    "module": "commonjs",
+    "module": "NodeNext",
     "lib": ["ES2020"],
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "sourceMap": true,
@@ -13,7 +13,6 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "outDir": "dist/main",
-    "rootDir": "src/main",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -27,11 +26,13 @@
   },
   "include": [
     "src/main/**/*.ts",
-    "src/shared/**/*.ts"
+    "src/shared/**/*.ts",
+    "src/modules/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "build"
+    "**/*.spec.ts",
+    "**/*.test.ts"
   ]
 }

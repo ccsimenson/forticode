@@ -1,4 +1,4 @@
-import { CspValidationError, CspValidationWarning } from '@shared/ipc';
+import { CspValidationError, CspValidationWarning } from '../../shared/ipc';
 
 export type CspFixType = 'add' | 'remove' | 'modify' | 'replace';
 
@@ -43,6 +43,14 @@ export interface CspValidationResponseWithFixes {
   originalCsp?: string;
   /** Metadata about the validation */
   meta?: {
-    [key: string]: any;
+    cspLevel: string;
+    usesStrictDynamic: boolean;
+    usesNoncesOrHashes: boolean;
+    allowsUnsafeInline: string[];
+    allowsUnsafeEval: string[];
+    recommendations: string[];
+    directives: Record<string, any>;
   };
+  /** Fixes to be applied */
+  fixes: CspFixSuggestion[];
 }

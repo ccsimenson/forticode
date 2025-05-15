@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { CspValidator } from '@modules/csp/CspValidator';
+import { CspValidator } from '@modules/csp/CspValidator.js';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
@@ -9,7 +9,7 @@ if (require('electron-squirrel-startup')) {
 }
 
 // Check if we're in development mode
-const isDevelopment = process.env.NODE_ENV === 'development' || process.env.ELECTRON_IS_DEV === '1';
+const isDevelopment = process.env['NODE_ENV'] === 'development' || process.env['ELECTRON_IS_DEV'] === '1';
 
 // Keep a global reference of the window object to prevent garbage collection
 let mainWindow: BrowserWindow | null = null;
@@ -64,15 +64,12 @@ const createWindow = async () => {
     
     // Install React and Redux devtools in development
     try {
-      const {
-        default: installExtension,
-        REACT_DEVELOPER_TOOLS,
-        REDUX_DEVTOOLS,
-      } = await import('electron-devtools-installer');
+      const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = await import('electron-devtools-installer');
       
-      await installExtension([REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS], {
-        loadExtensionOptions: { allowFileAccess: true },
-      });
+      await Promise.all([
+        installExtension(REACT_DEVELOPER_TOOLS),
+        installExtension(REDUX_DEVTOOLS)
+      ]);
     } catch (error) {
       console.error('Failed to install devtools:', error);
     }
@@ -105,16 +102,18 @@ const createWindow = async () => {
 app.whenReady().then(async () => {
   // Set up CSP
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data:",
+      "connect-src 'self' https:"
+    ].join('; ');
+
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': [
-          "default-src 'self'; " +
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
-          "style-src 'self' 'unsafe-inline'; " +
-          "img-src 'self' data:; " +
-          "connect-src 'self' https:;"
-        ]
+        'Content-Security-Policy': csp
       }
     });
   });

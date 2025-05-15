@@ -10,16 +10,10 @@
 
 ## 🚀 Features
 
-- **Advanced CSP Validation**: Comprehensive analysis of Content Security Policies
-- **Security Header Analysis**: Check for missing or misconfigured security headers
+- **CSP Validation**: Detect misconfigurations and inline script violations in Content Security Policies
+- **Security Headers**: Check for missing or misconfigured security headers
 - **Inline Script Detection**: Identify potential XSS vulnerabilities from inline scripts
 - **Automated Fixes**: Get actionable recommendations to secure your application
-- **Real-time Feedback**: Instant validation as you type
-- **Cross-Platform**: Works on Windows, macOS, and Linux
-
-## Features
-
-- **CSP Validation**: Detect misconfigurations and inline script violations in Content Security Policies
 - **Dynamic Nonce Generation**: Generate and apply secure nonces for scripts and styles
 - **Dependency Auditing**: Scan for known vulnerabilities in npm dependencies
 - **GitHub Integration**: Connect with GitHub repositories for automated security scanning
@@ -128,13 +122,16 @@ FortiCode is built with security in mind:
 
 ## 🤝 Contributing
 
-We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) to get started.
+We welcome contributions from the community! Here's how you can help:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. **Report bugs** - Open an issue to report any bugs or issues you find
+2. **Suggest features** - Have an idea for a new feature? Let us know!
+3. **Submit code** - Contribute code improvements or new features
+4. **Improve documentation** - Help us make our documentation better
+
+Please read our [Contribution Guide](docs/contributing/contribution-guide.md) for details on our code of conduct and the process for submitting pull requests.
+
+For developers looking to contribute code, check out our [Developer Documentation](docs/development/setup.md) to get started with the development environment.
 
 ## 📄 License
 
@@ -152,18 +149,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Material-UI](https://mui.com/)
 - [Vite](https://vitejs.dev/)
 
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
-
-## Support
-
-For support, please open an issue in the GitHub repository or contact the maintainers directly.
-
-## Roadmap
+## 📅 Roadmap
 
 See our [ROADMAP.md](ROADMAP.md) for planned features and future development.
