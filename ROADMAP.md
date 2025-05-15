@@ -25,6 +25,7 @@ To become the go-to security auditing solution for Electron applications, provid
 ## 📅 2025 Q4: Enhanced Features
 
 ### 🔍 Phase 3: Advanced Security Scanning
+- [ ] Security headers validation (X-Content-Type-Options, X-Frame-Options, etc.)
 - [ ] Dependency vulnerability scanning
 - [ ] Node.js security best practices
 - [ ] Electron-specific security checks
