@@ -1,0 +1,213 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x, 18.x]
+        
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linting
+        run: npm run lint
+      
+      - name: Run tests
+        run: npm test
+        env:
+          CI: true
+      
+      - name: Run type checking
+        run: npm run type-check
+      
+      - name: Run security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      
+      - name: Check documentation
+        run: |
+          npm run docs:validate
+          npm run docs:lint
+      
+      - name: Build
+        run: npm run build
+        
+      - name: Test distribution package
+        run: |
+          npm pack
+          npm install forticode-*.tgz
+          npm test
+
+  test-performance:
+    needs: build
+    runs-on: ubuntu-latest
+    outputs:
+      validation-time: ${{ steps.performance-metrics.outputs.validation-time }}
+      memory-usage: ${{ steps.performance-metrics.outputs.memory-usage }}
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run performance tests
+        id: performance-tests
+        run: |
+          npm run test:performance
+          echo "validation-time=$(jq -r '.validationTime' performance-report.json)" >> $GITHUB_OUTPUT
+          echo "memory-usage=$(jq -r '.memoryUsage' performance-report.json)" >> $GITHUB_OUTPUT
+      
+      - name: Generate performance report
+        id: performance-metrics
+        run: |
+          npm run report:performance
+          echo "validation-time=$(jq -r '.validationTime' performance-report.json)" >> $GITHUB_OUTPUT
+          echo "memory-usage=$(jq -r '.memoryUsage' performance-report.json)" >> $GITHUB_OUTPUT
+      
+      - name: Upload performance report
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-report
+          path: performance-report.json
+
+  release:
+    needs: [build, test-performance]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+          registry-url: https://registry.npmjs.org/
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Publish to npm
+        uses: JS-DevTools/npm-publish@v2
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            ## Changes
+            ${{ github.event.head_commit.message }}
+            
+            ## Performance
+            - Validation time: ${{ needs.test-performance.outputs.validation-time }}ms
+            - Memory usage: ${{ needs.test-performance.outputs.memory-usage }}MB
+          draft: false
+          prerelease: false
+
+  documentation:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build documentation
+        run: npm run docs:build
+      
+      - name: Deploy documentation
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          personal_token: ${{ secrets.GITHUB_TOKEN }}
+          external_repository: your-org/forticode-docs
+          publish_dir: ./docs/dist
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run security audit
+        run: npm audit --production
+      
+      - name: Run security scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      
+      - name: Run dependency-check
+        uses: dependency-check/Dependency-Check@v1
+        with:
+          project: FortiCode
+          path: .
+          format: 'HTML'
+          output: 'dependency-check'
+
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
+      
+      - name: Run Prettier
+        run: npm run format:check
+      
+      - name: Run TypeScript checks
+        run: npm run type-check
+      
+      - name: Run SonarQube analysis
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
