@@ -3,7 +3,7 @@ import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { parse } from 'ini';
-import { SecurityHeaders, NodeSecurityConfig, ElectronSecurityConfig, ConfigFile } from '../../shared/security/types.js';
+import type { SecurityHeaders, NodeSecurityConfig, ElectronSecurityConfig, ConfigFile } from '../../shared/security/types';
 
 export function registerSecurityHandlers() {
     // Security headers validation

@@ -1,14 +1,18 @@
-import { app, BrowserWindow } from 'electron';
-import { fileURLToPath } from 'url';
-import path from 'path';
-import { registerSecurityHandlers } from './security/security-handler.js';
+import { BrowserWindow, app } from 'electron';
+import * as path from 'path';
+import { registerSecurityHandlers } from './security/security-handler';
+import { execSync } from 'child_process';
+
+declare global {
+    var __dirname: string;
+}
+
+// Initialize global variables
+__dirname = __dirname || process.cwd();
 
 let mainWindow: BrowserWindow | null = null;
 
 function createWindow() {
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
@@ -29,7 +33,6 @@ function createWindow() {
     });
 
     // Ensure preload script is built
-    const { execSync } = require('child_process');
     try {
         execSync('npm run build:preload', { stdio: 'inherit' });
     } catch (error) {
@@ -58,7 +61,7 @@ function createWindow() {
                     mainWindow.webContents.openDevTools();
                 }
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 console.error('Failed to load development URL:', error);
             });
     } else {
@@ -69,7 +72,7 @@ function createWindow() {
                     mainWindow.show();
                 }
             })
-            .catch((error) => {
+            .catch((error: Error) => {
                 console.error('Failed to load file:', error);
             });
     }
