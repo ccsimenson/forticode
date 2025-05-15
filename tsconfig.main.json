@@ -12,20 +12,26 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "outDir": "dist/main",
+    "outDir": "dist/main/",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
       "@main/*": ["src/main/*"],
       "@renderer/*": ["src/renderer/*"],
       "@shared/*": ["src/shared/*"],
+      "@main/security/*": ["src/main/security/*"],
       "@modules/*": ["src/modules/*"]
     },
     "types": ["node", "electron"],
-    "tsBuildInfoFile": "dist/main/tsconfig.tsbuildinfo"
+    "tsBuildInfoFile": "dist/main/tsconfig.tsbuildinfo",
+    "noEmit": false,
+    "allowImportingTsExtensions": false
   },
   "include": [
-    "src/main/**/*.ts",
+    "src/main/index.ts",
+    "src/main/main.ts",
+    "src/main/preload.ts",
+    "src/main/security/**/*.ts",
     "src/shared/**/*.ts",
     "src/modules/**/*.ts"
   ],

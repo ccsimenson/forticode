@@ -1,4 +1,4 @@
-import { CspValidationError, CspValidationWarning } from '../../shared/ipc';
+import { CspValidationError, CspValidationWarning } from '../../shared/ipc.js';
 
 export type CspFixType = 'add' | 'remove' | 'modify' | 'replace';
 

@@ -42,6 +42,7 @@ jobs:
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          failOn: all
       
       - name: Check documentation
         run: |
@@ -174,14 +175,12 @@ jobs:
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          failOn: all
       
-      - name: Run dependency-check
-        uses: dependency-check/Dependency-Check@v1
+      - name: Run GitHub Security Scan
+        uses: github/codeql-action/analyze@v2
         with:
-          project: FortiCode
-          path: .
-          format: 'HTML'
-          output: 'dependency-check'
+          category: "/security"
 
   code-quality:
     runs-on: ubuntu-latest

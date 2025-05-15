@@ -1,0 +1,281 @@
+:root {
+  --primary-color: #7F00FF;
+  --accent-color: #3C40C6;
+  --background-color: #121212;
+  --text-color: #F1F1F1;
+  --surface-color: #1E1E1E;
+  --border-radius: 8px;
+  --spacing-unit: 8px;
+  --font-family: 'Inter', sans-serif;
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--background-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--background-color);
+}
+
+.root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--background-color);
+}
+
+.container {
+  max-width: 1200px;
+  width: 100%;
+  padding: calc(var(--spacing-unit) * 3);
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-section {
+  text-align: center;
+  margin: calc(var(--spacing-unit) * 5) 0;
+  padding: calc(var(--spacing-unit) * 4);
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-section h1 {
+  color: var(--text-color);
+  margin-bottom: calc(var(--spacing-unit) * 3);
+  font-size: 2.5rem;
+}
+
+.welcome-section p {
+  color: var(--text-color);
+  margin-bottom: calc(var(--spacing-unit) * 3);
+  font-size: 1.1rem;
+}
+
+.security-test-container {
+  margin: calc(var(--spacing-unit) * 4) 0;
+  padding: calc(var(--spacing-unit) * 3);
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+}
+
+.security-test-container h1 {
+  color: var(--text-color);
+  margin-bottom: calc(var(--spacing-unit) * 2);
+  font-size: 2rem;
+}
+
+.security-test-container p {
+  color: var(--text-color);
+  margin-bottom: calc(var(--spacing-unit) * 2);
+  font-size: 1rem;
+}
+
+.primary-button {
+  background: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+  width: 200px;
+  margin: 0 auto;
+  display: block;
+  box-shadow: var(--shadow-md);
+  border-radius: var(--border-radius);
+  padding: calc(var(--spacing-unit) * 2) calc(var(--spacing-unit) * 4);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.1rem;
+  font-family: var(--font-family);
+  font-weight: 500;
+  width: 200px;
+  margin: 0 auto;
+}
+
+.primary-button:hover {
+  background: var(--accent-color);
+  transform: translateY(-2px);
+}
+
+.secondary-button {
+  background: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: var(--border-radius);
+  padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  font-family: var(--font-family);
+  font-weight: 500;
+  margin-left: calc(var(--spacing-unit) * 2);
+}
+
+.secondary-button:hover {
+  background: var(--primary-color);
+  color: var(--text-color);
+}
+
+.primary-button:hover {
+  background: var(--accent-color);
+}
+
+button, .button {
+  background: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: var(--border-radius);
+  padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-family: var(--font-family);
+  font-weight: 500;
+}
+
+button:hover, .button:hover {
+  background: var(--accent-color);
+}
+
+input, select, textarea {
+  background: var(--surface-color);
+  color: var(--text-color);
+  border: 1px solid var(--primary-color);
+  border-radius: var(--border-radius);
+  padding: calc(var(--spacing-unit) * 1.5);
+  margin: calc(var(--spacing-unit) * 0.5) 0;
+  font-family: var(--font-family);
+  font-size: 1rem;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--background-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+}
+
+.root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--background-color);
+}
+
+.container {
+  max-width: 1200px;
+  width: 100%;
+  padding: var(--spacing-xl);
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+}
+
+.welcome-section {
+  text-align: center;
+  margin: var(--spacing-xxl) 0;
+}
+
+.welcome-section h1 {
+  color: var(--text-color);
+  margin-bottom: var(--spacing-lg);
+}
+
+.welcome-section p {
+  color: var(--text-color);
+  margin-bottom: var(--spacing-lg);
+}
+
+.welcome-section button {
+  background: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  cursor: pointer;
+  transition: var(--transition-base);
+  font-size: 1rem;
+}
+
+.welcome-section button:hover {
+  background: var(--accent-color);
+}
+
+button, .button {
+  background: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  cursor: pointer;
+  transition: var(--transition-base);
+}
+
+button:hover, .button:hover {
+  background: var(--accent-color);
+}
+
+input, select, textarea {
+  background: var(--surface-color);
+  color: var(--text-color);
+  border: 1px solid var(--primary-color);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  margin: var(--spacing-md) 0;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-color);
+  margin-bottom: calc(var(--spacing-unit) * 2);
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-color);
+}
+
+/* Add any additional global styles here */

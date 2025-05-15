@@ -2,6 +2,8 @@ import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { CspValidator } from '@modules/csp/CspValidator.js';
+import { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer';
+const install = require('electron-devtools-installer');
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
@@ -64,11 +66,9 @@ const createWindow = async () => {
     
     // Install React and Redux devtools in development
     try {
-      const { default: installExtension, REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } = await import('electron-devtools-installer');
-      
       await Promise.all([
-        installExtension(REACT_DEVELOPER_TOOLS),
-        installExtension(REDUX_DEVTOOLS)
+        install.default(REACT_DEVELOPER_TOOLS),
+        install.default(REDUX_DEVTOOLS)
       ]);
     } catch (error) {
       console.error('Failed to install devtools:', error);

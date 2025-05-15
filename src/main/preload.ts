@@ -1,7 +1,8 @@
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
-import { IpcChannels } from '@shared/ipc.js';
+// @ts-check
+import { contextBridge, ipcRenderer } from 'electron';
+import { IpcChannels } from '../shared/ipc.js';
 
-// Define a custom interface for our exposed API
+// Extend the global Window interface
 declare global {
   interface Window {
     electron: {
@@ -22,18 +23,17 @@ declare global {
 }
 
 // Whitelist of valid channels
-const validChannels = Object.values(IpcChannels);
+const validChannels: string[] = Object.values(IpcChannels);
 
 // Helper function to validate IPC channels
 function isValidChannel(channel: string): boolean {
-  return validChannels.includes(channel as any);
+  return validChannels.includes(channel);
 }
 
 // Expose protected methods that allow the renderer process to use
-// the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electron', {
   ipcRenderer: {
-    send: (channel: string, ...args: any[]): void => {
+    send: (channel: string, ...args: any[]) => {
       if (isValidChannel(channel)) {
         ipcRenderer.send(channel, ...args);
       } else {
@@ -41,10 +41,9 @@ contextBridge.exposeInMainWorld('electron', {
       }
     },
     
-    on: (channel: string, listener: (...args: any[]) => void): (() => void) => {
+    on: (channel: string, listener: (...args: any[]) => void): () => void => {
       if (isValidChannel(channel)) {
-        // Strip event as it includes `sender`
-        const subscription = (_event: IpcRendererEvent, ...args: any[]) => listener(...args);
+        const subscription = (_event: any, ...args: any[]) => listener(...args);
         ipcRenderer.on(channel, subscription);
         
         // Return cleanup function
@@ -59,33 +58,25 @@ contextBridge.exposeInMainWorld('electron', {
     
     once: (channel: string, listener: (...args: any[]) => void): void => {
       if (isValidChannel(channel)) {
-        // Strip event as it includes `sender`
-        ipcRenderer.once(channel, (_event, ...args) => listener(...args));
+        ipcRenderer.once(channel, (_event: any, ...args: any[]) => {
+          listener(...args);
+        });
       } else {
         console.warn(`Attempted to listen once to unregistered channel: ${channel}`);
       }
     },
     
-    removeAllListeners: (channel: string): void => {
+    removeAllListeners: (channel: string) => {
       if (isValidChannel(channel)) {
         ipcRenderer.removeAllListeners(channel);
-      } else {
-        console.warn(`Attempted to remove listeners from unregistered channel: ${channel}`);
       }
     },
     
     invoke: async (channel: string, ...args: any[]): Promise<any> => {
       if (isValidChannel(channel)) {
-        try {
-          return await ipcRenderer.invoke(channel, ...args);
-        } catch (error) {
-          console.error(`Error invoking ${channel}:`, error);
-          throw error;
-        }
+        return await ipcRenderer.invoke(channel, ...args);
       }
-      
-      console.warn(`Attempted to invoke unregistered channel: ${channel}`);
-      return Promise.reject(new Error(`Invalid channel: ${channel}`));
+      return null;
     }
   },
   

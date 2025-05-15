@@ -1,30 +1,30 @@
-import React from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import { Box, Typography, Container } from '@mui/material';
+import '../styles/global.css';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import SecurityTest from './pages/SecurityTest';
 
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-  },
-});
+function App() {
+  const navigate = useNavigate();
 
-const App: React.FC = () => {
   return (
-    <ThemeProvider theme={darkTheme}>
-      <CssBaseline />
-      <Container maxWidth="lg">
-        <Box sx={{ my: 4 }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            FortiCode - Security Auditor
-          </Typography>
-          <Typography variant="body1">
-            Welcome to FortiCode. Start by configuring your security settings.
-          </Typography>
-        </Box>
-      </Container>
-    </ThemeProvider>
+    <div className="root">
+      <Router>
+        <div className="container">
+          <Routes>
+            <Route path="/" element={
+              <div className="welcome-section">
+                <h1>FortiCode - Security Auditor</h1>
+                <p>Welcome to FortiCode. Start by configuring your security settings.</p>
+                <button className="primary-button" onClick={() => navigate('/security-test')}>
+                  Run Security Scan
+                </button>
+              </div>
+            } />
+            <Route path="/security-test" element={<SecurityTest />} />
+          </Routes>
+        </div>
+      </Router>
+    </div>
   );
-};
+}
 
 export default App;
