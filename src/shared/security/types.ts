@@ -1,11 +1,19 @@
+export interface ConfigFile {
+    path: string;
+    valid: boolean;
+    errors?: string[];
+}
+
 export interface SecurityCheck {
     name: string;
     run(): Promise<SecurityCheckResult>;
 }
 
 export interface SecurityCheckResult {
-    passed: boolean;
-    details: Record<string, any>;
+    name: string;
+    valid: boolean;
+    errors: string[];
+    configFiles?: ConfigFile[];
 }
 
 export interface SecurityScanResult {
@@ -17,12 +25,67 @@ export interface SecurityScanResult {
     }>;
 }
 
-export interface Vulnerability {
+export interface NvdVulnerability {
+    id: string;
     name: string;
     version: string;
     severity: 'critical' | 'high' | 'medium' | 'low';
     description: string;
     references: string[];
+    published: string;
+    lastModified: string;
+    cvssScore: number;
+    vectorString: string;
+    affectedVersions: string[];
+    path?: string;
+}
+
+export interface CheckResult {
+    check: string;
+    result: 'PASS' | 'FAIL' | 'ERROR';
+    details: {
+        version?: string;
+        vulnerabilities?: Array<{
+            id: string;
+            severity: string;
+            description: string;
+            cvssScore: number;
+        }>;
+        errors?: string[];
+    };
+}
+
+export interface NpmAuditAdvisory {
+    id: string;
+    title: string;
+    module_name: string;
+    vulnerable_versions: string;
+    severity: 'critical' | 'high' | 'medium' | 'low';
+    overview: string;
+    references: string[];
+    url?: string;
+    cvss_score?: number;
+    vector_string?: string;
+}
+
+export interface NpmAuditResponse {
+    advisories: Record<string, NpmAuditAdvisory>;
+    metadata: {
+        vulnerabilities: {
+            info: number;
+            low: number;
+            moderate: number;
+            high: number;
+            critical: number;
+            total: number;
+        };
+        dependencies: {
+            prod: number;
+            dev: number;
+            optional: number;
+            total: number;
+        };
+    };
 }
 
 export interface SecurityHeaders {
@@ -46,7 +109,47 @@ export interface ElectronSecurityConfig {
     contextIsolation: boolean;
     nodeIntegration: boolean;
     sandbox: boolean;
-    [key: string]: any;
+    webSecurity: boolean;
+    allowRunningInsecureContent: boolean;
+    webviewTag: boolean;
+    protocolHandlers: string[];
+    ipcMain: {
+        allow: string[];
+        block: string[];
+    };
+    fileSystemAccess: {
+        allow: string[];
+        block: string[];
+        pathTraversalProtection: boolean;
+        sanitizePaths: boolean;
+        requirePermissions: boolean;
+        permissionCheckInterval: number;
+        restrictedDirs: string[];
+        allowUserDirs: boolean;
+        allowedFileTypes: string[];
+        blockedFileTypes: string[];
+        watchdogEnabled: boolean;
+        watchdogInterval: number;
+        watchdogLogPath: string;
+        audit: {
+            enabled: boolean;
+            logPath: string;
+            retentionDays: number;
+        };
+        requireEncryption: boolean;
+        encryptionAlgorithm: string;
+        keyRotationInterval: number;
+        backup: {
+            enabled: boolean;
+            interval: number;
+            retentionDays: number;
+        };
+        recovery: {
+            enabled: boolean;
+            maxAttempts: number;
+            retryDelay: number;
+        };
+    };
 }
 
 export interface ConfigFile {

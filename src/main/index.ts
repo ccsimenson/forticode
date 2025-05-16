@@ -1,6 +1,7 @@
-import { BrowserWindow, app } from 'electron';
+import { BrowserWindow, app, ipcMain } from 'electron';
 import * as path from 'path';
 import { registerSecurityHandlers } from './security/security-handler';
+import { setupLicenseHandlers } from './setup-license';
 import { execSync } from 'child_process';
 
 declare global {
@@ -93,6 +94,22 @@ function createWindow() {
 app.on('ready', () => {
     createWindow();
     registerSecurityHandlers();
+    
+    // Setup license handlers and validation
+    setupLicenseHandlers();
+    
+    // Example of protecting a feature with license check
+    ipcMain.handle('protected-feature', async (_event, ..._args) => {
+      const { licenseService } = require('../shared/licensing/license-service');
+      const isAllowed = await licenseService.validateLicense();
+      
+      if (!isAllowed) {
+        throw new Error('This feature requires a valid license');
+      }
+      
+      // Proceed with the feature
+      return 'Protected feature result';
+    });
 });
 
 app.on('window-all-closed', () => {
