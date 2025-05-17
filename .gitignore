@@ -19,6 +19,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+
+# Environment variables
+.env
+.env.*
+!.env.example
 lerna-debug.log*
 
 # Editor directories and files

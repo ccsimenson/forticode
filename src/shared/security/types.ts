@@ -14,6 +14,7 @@ export interface SecurityCheckResult {
     valid: boolean;
     errors: string[];
     configFiles?: ConfigFile[];
+    details?: any;
 }
 
 export interface SecurityScanResult {

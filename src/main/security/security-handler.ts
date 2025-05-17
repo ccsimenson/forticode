@@ -1,9 +1,10 @@
 import { ipcMain } from 'electron';
+import { SecurityHeaders, NodeSecurityConfig, ElectronSecurityConfig, ConfigFile, SecurityCheckResult, NpmAuditResponse, NvdVulnerability } from '../../shared/security/types';
 import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
+import * as path from 'path';
 import { join } from 'path';
 import { parse } from 'ini';
-import type { SecurityHeaders, NodeSecurityConfig, ElectronSecurityConfig, ConfigFile } from '../../shared/security/types';
 
 export function registerSecurityHandlers() {
     // Security headers validation
@@ -18,7 +19,13 @@ export function registerSecurityHandlers() {
                 'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
                 'Permissions-Policy': 'geolocation=(), microphone=(), camera=()'
             };
-            return headers;
+            return {
+                name: 'Security Headers',
+                valid: true,
+                errors: [],
+                configFiles: [],
+                details: headers
+            };
         } catch (error) {
             console.error('Error getting security headers:', error);
             throw error;
@@ -30,7 +37,13 @@ export function registerSecurityHandlers() {
         try {
             const result = execSync('npm audit --json', { encoding: 'utf-8' });
             const audit = JSON.parse(result);
-            return audit.advisories ? Object.values(audit.advisories) : [];
+            return {
+                name: 'Dependency Vulnerability Scan',
+                valid: Object.keys(audit.advisories || {}).length === 0,
+                errors: Object.values(audit.advisories || {}).map(advisory => advisory.title),
+                configFiles: [],
+                details: audit
+            };
         } catch (error) {
             console.error('Error scanning dependencies:', error);
             throw error;
@@ -51,7 +64,13 @@ export function registerSecurityHandlers() {
                 },
                 audit: true
             };
-            return securityConfig;
+            return {
+                name: 'Node.js Security Configuration',
+                valid: true,
+                errors: [],
+                configFiles: [],
+                details: securityConfig
+            };
         } catch (error) {
             console.error('Error getting Node.js config:', error);
             throw error;
@@ -67,9 +86,53 @@ export function registerSecurityHandlers() {
                 sandbox: true,
                 webSecurity: true,
                 allowRunningInsecureContent: false,
-                webviewTag: false
+                webviewTag: false,
+                protocolHandlers: [],
+                ipcMain: {
+                    allow: [],
+                    block: ['*']
+                },
+                fileSystemAccess: {
+                    allow: [],
+                    block: ['*'],
+                    allowedFileTypes: ['txt', 'json', 'js', 'ts', 'html', 'css'],
+                    blockedFileTypes: ['exe', 'dll', 'bat', 'sh', 'py', 'php'],
+                    pathTraversalProtection: true,
+                    sanitizePaths: true,
+                    requirePermissions: true,
+                    permissionCheckInterval: 300,
+                    restrictedDirs: ['/', 'C:\\', 'D:\\'],
+                    allowUserDirs: false,
+                    watchdogEnabled: true,
+                    watchdogInterval: 60,
+                    watchdogLogPath: path.join(process.cwd(), 'logs', 'security-watchdog.log'),
+                    audit: {
+                        enabled: true,
+                        logPath: path.join(process.cwd(), 'logs', 'security-audit.log'),
+                        retentionDays: 30
+                    },
+                    requireEncryption: true,
+                    encryptionAlgorithm: 'aes-256-gcm',
+                    keyRotationInterval: 86400,
+                    backup: {
+                        enabled: true,
+                        interval: 3600,
+                        retentionDays: 7
+                    },
+                    recovery: {
+                        enabled: true,
+                        maxAttempts: 3,
+                        retryDelay: 300
+                    }
+                }
             };
-            return electronConfig;
+            return {
+                name: 'Electron Security Configuration',
+                valid: true,
+                errors: [],
+                configFiles: [],
+                details: electronConfig
+            };
         } catch (error) {
             console.error('Error getting Electron config:', error);
             throw error;
@@ -101,7 +164,13 @@ export function registerSecurityHandlers() {
                 }
             }
 
-            return configFiles;
+            return {
+                name: 'Configuration File Validation',
+                valid: configFiles.every(file => file.valid),
+                errors: configFiles.filter(file => !file.valid).map(file => file.errors?.[0] || 'Unknown error'),
+                configFiles,
+                details: configFiles
+            };
         } catch (error) {
             console.error('Error getting config files:', error);
             throw error;
