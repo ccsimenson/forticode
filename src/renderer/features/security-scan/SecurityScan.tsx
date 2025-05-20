@@ -21,17 +21,18 @@ export const SecurityScan: React.FC<SecurityScanProps> = ({ onScanComplete }) =>
         throw new Error('GITHUB_TOKEN environment variable is required');
       }
 
-      const repository = 'your-repo-owner/your-repo-name';
+      const [owner, repo] = 'your-repo-owner/your-repo-name'.split('/');
       const branch = 'main';
 
-      if (!repository) {
-        throw new Error('Repository is required');
+      if (!owner || !repo) {
+        throw new Error('Repository must be in format: owner/repo-name');
       }
 
       const results = await scanService.startScan({
-        repository: repository as string,
-        branch: branch as string,
-        token: token as string
+        owner,
+        repo,
+        branch,
+        token
       });
       setScanResults(results);
       setIsScanning(false);

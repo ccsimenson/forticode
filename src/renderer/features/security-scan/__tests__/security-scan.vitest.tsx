@@ -3,6 +3,16 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { SecurityScan } from '../SecurityScan';
 import { SecurityScanResult, ScanOptions } from '../scan-service';
 
+// Add type for matchers
+declare module 'vitest' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface Assertion<T = any> {
+    toBeInTheDocument(): void;
+    toBeVisible(): void;
+    // Add other matchers as needed
+  }
+}
+
 // Extend the interface to include our test method
 declare module '../scan-service' {
   interface SecurityScanService {
@@ -45,7 +55,7 @@ class TestSecurityScanService {
 vi.mock('../scan-service', () => {
   // Define the mock service class inside the factory function
   class MockSecurityScanService {
-    private _testScanResults: any;
+    private _testScanResults: SecurityScanResult;
     
     constructor() {
       this._testScanResults = {
@@ -65,18 +75,42 @@ vi.mock('../scan-service', () => {
       };
     }
     
-    async startScan(_options: any) {
+    async startScan(_options: ScanOptions): Promise<SecurityScanResult> {
       return this._testScanResults;
     }
     
-    _testSetScanResults(results: any) {
+    _testSetScanResults(results: Partial<SecurityScanResult>) {
       this._testScanResults = { ...this._testScanResults, ...results };
     }
   }
   
+  const defaultScanResult: SecurityScanResult = {
+    owner: 'test-owner',
+    repoName: 'test-repo',
+    repository: 'test-owner/test-repo',
+    branch: 'main',
+    totalFiles: 0,
+    scannedFiles: 0,
+    issuesFound: 0,
+    issues: [],
+    status: 'pending',
+    progress: 0,
+    startTime: new Date(),
+    endTime: undefined,
+    error: ''
+  };
+
+  const mockStartScan = vi.fn().mockImplementation(async () => ({
+    ...defaultScanResult
+  }));
+
   return {
     SecurityScanService: MockSecurityScanService,
-    startScan: vi.fn()
+    startScan: mockStartScan,
+    // Export for test setup if needed
+    _testSetScanResults: (results: Partial<SecurityScanResult>) => {
+      Object.assign(defaultScanResult, results);
+    }
   };
 });
 

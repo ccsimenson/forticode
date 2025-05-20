@@ -27,7 +27,8 @@
       "@shared/*": ["src/shared/*"],
       "@modules/*": ["src/modules/*"],
       "@utils/*": ["src/renderer/utils/*"],
-      "@features/*": ["src/renderer/features/*"]
+      "@features/*": ["src/renderer/features/*"],
+      "@/__mocks__/*": ["src/__mocks__/*"]
     },
     "typeRoots": [
       "./node_modules/@types",

@@ -110,25 +110,27 @@ const SecurityScanResults: React.FC<SecurityScanResultsProps> = ({ onScanComplet
                         </div>
                         
                         <div className="space-y-2">
-                            {Object.entries(check.result.details).map(([key, value]) => (
-                                <div className="flex items-start space-x-4">
-                                    <span className="font-medium w-40">{key}:</span>
-                                    <div className="flex-1">
-                                        {typeof value === 'object' ? (
-                                            <ul className="list-disc list-inside">
-                                                {Object.entries(value).map(([subKey, subValue]) => (
-                                                    <li key={subKey} className="flex items-center space-x-2">
-                                                        <span className="font-medium">{subKey}:</span>
-                                                        <span>{String(subValue)}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        ) : (
-                                            <span>{String(value)}</span>
-                                        )}
+                            {check.result.details && typeof check.result.details === 'object' && (
+                                Object.entries(check.result.details).map(([key, value]) => (
+                                    <div key={key} className="flex items-start space-x-4">
+                                        <span className="font-medium w-40">{key}:</span>
+                                        <div className="flex-1">
+                                            {value && typeof value === 'object' && !Array.isArray(value) ? (
+                                                <ul className="list-disc list-inside">
+                                                    {Object.entries(value).map(([subKey, subValue]) => (
+                                                        <li key={subKey} className="flex items-center space-x-2">
+                                                            <span className="font-medium">{subKey}:</span>
+                                                            <span>{String(subValue)}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            ) : (
+                                                <span>{String(value)}</span>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                ))
+                            )}
                         </div>
                     </div>
                 ))}
