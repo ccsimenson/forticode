@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { createGithubAuth } from './github-auth';
 import { logger } from './logger';
 import { verifyWebhookSignature } from './auth-middleware';
 import { GitHubAppConfig } from './github-app.config';
 
-interface WebhookPayload {
+interface WebhookEvent {
   action?: string;
   installation?: {
     id: number;
@@ -12,6 +12,7 @@ interface WebhookPayload {
   repository?: {
     full_name: string;
     id: number;
+    [key: string]: any;
   };
   repositories?: Array<{
     full_name: string;
@@ -22,11 +23,6 @@ interface WebhookPayload {
     id: number;
     [key: string]: any;
   };
-  repository?: {
-    id: number;
-    [key: string]: any;
-  };
-  action?: string;
   repositories_added?: Array<{
     id: number;
     [key: string]: any;
@@ -58,11 +54,21 @@ export const handleWebhook = async (req: Request, res: Response, next: NextFunct
     });
 
     // Verify webhook signature
-    const verified = await verifyWebhookSignature(signature, JSON.stringify(payload));
-    if (!verified) {
-      logger.warn('Invalid webhook signature');
-      return res.status(401).json({ error: 'Invalid webhook signature' });
+    if (typeof signature !== 'string') {
+      logger.warn('Missing webhook signature');
+      return res.status(401).json({ error: 'Missing webhook signature' });
     }
+    
+    await verifyWebhookSignature(req, res, (error) => {
+      if (error) {
+        logger.warn('Invalid webhook signature', { error });
+        return res.status(401).json({ error: 'Invalid webhook signature' });
+      }
+    });
+    
+    // If we get here, verification was successful
+    next();
+    return;
 
     // Handle different event types
     switch (eventType) {
@@ -85,8 +91,9 @@ export const handleWebhook = async (req: Request, res: Response, next: NextFunct
 
     res.status(200).json({ message: 'Webhook received' });
   } catch (error) {
-    logger.error('Error handling webhook', error);
+    logger.error('Error handling webhook', { error });
     res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
@@ -155,18 +162,20 @@ const handlePullRequestReviewEvent = async (payload: WebhookEvent) => {
   try {
     const installationId = payload.installation?.id;
     const repositoryId = payload.repository?.id;
-    const pullRequestId = payload.pull_request?.id;
-    const reviewId = payload.review?.id;
-    const state = payload.review?.state;
+    const pullRequest = payload.pull_request;
+    const review = payload.review;
 
     logger.info('Pull request review event received', {
       installationId,
       repositoryId,
-      pullRequestId,
-      reviewId,
-      state
-      pullRequestId: payload.pull_request?.number,
-      reviewId: payload.review?.id,
+      pullRequest: {
+        id: pullRequest?.id,
+        number: pullRequest?.number
+      },
+      review: {
+        id: review?.id,
+        state: review?.state
+      },
       action: payload.action
     });
 
@@ -179,22 +188,50 @@ const handlePullRequestReviewEvent = async (payload: WebhookEvent) => {
 // Create webhook for repository
 const createWebhook = async (installationId: number | undefined, token: string) => {
   try {
-    // Create webhook
-    await fetch(`https://api.github.com/installation/repositories`, {
+    if (!installationId) {
+      throw new Error('Installation ID is required');
+    }
+    
+    // Get repository details to create webhook
+    const repoResponse = await fetch(`https://api.github.com/installation/repositories`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'User-Agent': 'Electron-Security-Auditor'
+      }
+    });
+    
+    if (!repoResponse.ok) {
+      const error = await repoResponse.json();
+      throw new Error(`Failed to fetch repositories: ${error.message || repoResponse.statusText}`);
+    }
+    
+    const repos = await repoResponse.json();
+    const repo = repos.repositories?.[0];
+    
+    if (!repo) {
+      throw new Error('No repositories found for installation');
+    }
+    
+    // Create webhook for the first repository
+    const webhookResponse = await fetch(`https://api.github.com/repos/${repo.full_name}/hooks`, {
       method: 'POST',
       headers: {
-        'Authorization': `token ${token}`,
-        'Accept': 'application/vnd.github.v3+json'
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'Electron-Security-Auditor'
       },
       body: JSON.stringify({
         name: 'web',
-        config: {
-          url: `${GitHubAppConfig.webhookUrl}${GitHubAppConfig.webhookPath}`,
-          content_type: 'json',
-          secret: GitHubAppConfig.webhookSecret
-        },
+        active: true,
         events: ['push', 'pull_request', 'installation', 'installation_repositories'],
-        active: true
+        config: {
+          url: GitHubAppConfig.fullWebhookUrl,
+          content_type: 'json',
+          secret: GitHubAppConfig.webhookSecret,
+          insecure_ssl: process.env.NODE_ENV === 'production' ? '0' : '1'
+        }
       })
     });
   } catch (error) {

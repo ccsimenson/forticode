@@ -3,9 +3,8 @@ import * as yaml from 'js-yaml';
 import path from 'path';
 import { logger } from './logger';
 
-// Load configuration from YAML file
-const configPath = process.env.GITHUB_APP_CONFIG || '.github/github-app.yml';
-const config = yaml.load(readFileSync(configPath, 'utf8')) as {
+// Define configuration interface
+interface AppConfig {
   GITHUB_APP_ID: string;
   GITHUB_APP_PRIVATE_KEY: string;
   GITHUB_APP_CLIENT_ID: string;
@@ -14,7 +13,13 @@ const config = yaml.load(readFileSync(configPath, 'utf8')) as {
   SESSION_SECRET: string;
   WEBHOOK_PATH: string;
   WEBHOOK_PORT: number;
-};
+  GITHUB_AUTH_REDIRECT_URI?: string;
+  NODE_ENV?: string;
+}
+
+// Load configuration from YAML file
+const configPath = process.env.GITHUB_APP_CONFIG || '.github/github-app.yml';
+const config = yaml.load(readFileSync(configPath, 'utf8')) as AppConfig;
 
 // Validate configuration
 if (!config.GITHUB_APP_ID) {
@@ -58,27 +63,32 @@ if (!config.WEBHOOK_PORT) {
 }
 
 // Export configuration
+// Define the base URL for webhooks (should be your public URL in production)
+const WEBHOOK_BASE_URL = process.env.WEBHOOK_BASE_URL || `http://localhost:${config.WEBHOOK_PORT}`;
+
 export const GitHubAppConfig = {
-  GITHUB_APP_ID: config.GITHUB_APP_ID,
-  GITHUB_APP_PRIVATE_KEY: config.GITHUB_APP_PRIVATE_KEY,
-  GITHUB_APP_CLIENT_ID: config.GITHUB_APP_CLIENT_ID,
-  GITHUB_APP_CLIENT_SECRET: config.GITHUB_APP_CLIENT_SECRET,
-  GITHUB_WEBHOOK_SECRET: config.GITHUB_WEBHOOK_SECRET,
-  SESSION_SECRET: config.SESSION_SECRET,
-  WEBHOOK_PATH: config.WEBHOOK_PATH,
-  WEBHOOK_PORT: config.WEBHOOK_PORT
+  ...config,
+  // Add any additional configuration options here
+  get privateKey() {
+    return Buffer.from(config.GITHUB_APP_PRIVATE_KEY, 'base64').toString('utf-8');
+  },
+  webhookUrl: WEBHOOK_BASE_URL,
+  webhookPath: config.WEBHOOK_PATH,
+  webhookSecret: config.GITHUB_WEBHOOK_SECRET,
+  get fullWebhookUrl() {
+    return `${this.webhookUrl}${this.webhookPath}`.replace(/([^:]\/)\/+/g, '$1');
+  }
 };
 
 // Export webhook configuration
-export const WEBHOOK_CONFIG = {
+export const webhookConfig = {
   path: config.WEBHOOK_PATH,
-  port: config.WEBHOOK_PORT
-  port: config.webhookPort
-  path: config.GITHUB_WEBHOOK_PATH,
-  port: parseInt(config.GITHUB_WEBHOOK_PORT)
+  port: config.WEBHOOK_PORT,
+  secret: config.GITHUB_WEBHOOK_SECRET,
+  // Add any additional webhook configuration here
 };
 
-export const AUTH_CONFIG = {
+export const authConfig = {
   redirectUri: config.GITHUB_AUTH_REDIRECT_URI,
   sessionSecret: config.SESSION_SECRET
 };

@@ -123,5 +123,6 @@ export const logError = (req: ExtendedRequest, error: Error, details?: any) => {
 };
 
 // Export logger instance
-export const getLogger = () => logger;
-export default getLogger;
+export { logger };
+
+export default logger;
