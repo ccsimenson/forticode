@@ -25,8 +25,17 @@
       "@main/*": ["src/main/*"],
       "@renderer/*": ["src/renderer/*"],
       "@shared/*": ["src/shared/*"],
-      "@modules/*": ["src/modules/*"]
+      "@modules/*": ["src/modules/*"],
+      "@utils/*": ["src/renderer/utils/*"],
+      "@features/*": ["src/renderer/features/*"]
     },
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
+    "types": ["node"],
+    "allowSyntheticDefaultImports": true,
+    "preserveSymlinks": true,
 
     /* Type Checking */
     "strictNullChecks": true,
@@ -40,10 +49,6 @@
     "noImplicitReturns": true,
     "noImplicitOverride": true,
 
-    /* Module Resolution */
-    "allowSyntheticDefaultImports": true,
-    "preserveSymlinks": true,
-
     /* Source Map */
     "sourceMap": true,
     "inlineSources": true,
@@ -53,18 +58,12 @@
 
     /* Additional Checks */
     "noUncheckedIndexedAccess": true,
-    "noPropertyAccessFromIndexSignature": true,
-
-    /* Type Definitions */
-    "types": ["node"],
-    "typeRoots": [
-      "./node_modules/@types",
-      "./src/types"
-    ]
+    "noPropertyAccessFromIndexSignature": true
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
+    "src/**/*.d.ts",
     "electron.d.ts"
   ],
   "exclude": [

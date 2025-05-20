@@ -18,12 +18,13 @@ export interface SecurityScanResult {
   status: 'pending' | 'running' | 'completed' | 'error';
   progress: number;
   startTime: Date;
-  endTime: Date | undefined;
-  error?: string;
+  endTime?: Date;
+  error: string;
 }
 
 export interface ScanOptions {
-  repository: string;
-  token: string;
-  branch?: string;
+  owner: string;
+  repo: string;
+  branch: string;
+  token?: string;
 }
