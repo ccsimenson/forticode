@@ -1,37 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
-import { GitHubAppConfig } from './github-app.config';
 import { logger } from './logger';
-import { verifyWebhookSignature } from './auth-middleware';
-import { handleWebhook } from './webhook-handler';
+import { webhookHandler as webhookHandlerInstance } from './webhook-handler';
 
 // Webhook endpoint
-export const webhookHandler = async (req: Request, res: Response) => {
+export const webhookHandler = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Verify webhook signature
-    await verifyWebhookSignature(req, res, (error) => {
-      if (error) {
-        logger.error('Webhook signature verification failed', { error });
-        return res.status(401).json({ error: 'Webhook signature verification failed' });
-      }
-    });
+    // Handle webhook using the exported singleton instance
+    await webhookHandlerInstance.handleWebhook(req, res, next);
 
     // Log webhook event
     logger.info('Webhook received', {
-      webhookPath: GitHubAppConfig.WEBHOOK_PATH,
-      webhookPort: GitHubAppConfig.WEBHOOK_PORT
-    });
-
-    // Handle webhook
-    await handleWebhook(req, res, (error) => {
-      if (error) {
-        logger.error('Error in webhook handler', { error });
-        res.status(500).json({ error: 'Internal server error' });
-      }
+      webhookPath: webhookHandlerInstance.config.webhookPath,
+      webhookPort: webhookHandlerInstance.config.webhookPort
     });
 
     res.status(200).json({ success: true });
   } catch (error) {
-    logger.error('Error handling webhook', error);
+    logger.error('Error handling webhook', { error });
     res.status(500).json({ error: 'Internal server error' });
   }
 };

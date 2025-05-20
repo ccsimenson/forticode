@@ -2,8 +2,10 @@ import { createAppAuth } from '@octokit/auth-app';
 import { createTokenAuth } from '@octokit/auth-token';
 import { createOAuthAppAuth } from '@octokit/auth-oauth-app';
 import { GitHubAppConfig } from './github-app.config';
+import { createHash } from 'crypto';
 import { logger } from './logger';
 import { Request, Response, NextFunction } from 'express';
+import { Webhooks } from '@octokit/webhooks';
 
 // Cache for auth instances
 const authCache = new Map<string, any>();
@@ -12,10 +14,10 @@ const authCache = new Map<string, any>();
 export const createGithubAuth = async () => {
   try {
     const auth = createAppAuth({
-      appId: parseInt(GitHubAppConfig.GITHUB_APP_ID),
-      privateKey: GitHubAppConfig.GITHUB_APP_PRIVATE_KEY,
-      clientId: GitHubAppConfig.GITHUB_APP_CLIENT_ID,
-      clientSecret: GitHubAppConfig.GITHUB_APP_CLIENT_SECRET
+      appId: parseInt(process.env.GITHUB_APP_ID || '0'),
+      privateKey: process.env.GITHUB_APP_PRIVATE_KEY || '',
+      clientId: process.env.GITHUB_APP_CLIENT_ID || '',
+      clientSecret: process.env.GITHUB_APP_CLIENT_SECRET || ''
     });
 
     logger.info('GitHub auth instance created');
@@ -29,7 +31,7 @@ export const createGithubAuth = async () => {
 // Get cached auth instance
 export const getGithubAuth = async () => {
   try {
-    const cacheKey = `${GitHubAppConfig.GITHUB_APP_ID}-${GitHubAppConfig.GITHUB_APP_PRIVATE_KEY}`;
+    const cacheKey = `${process.env.GITHUB_APP_ID}-${process.env.GITHUB_APP_PRIVATE_KEY}`;
     const auth = authCache.get(cacheKey);
 
     if (auth) {
@@ -55,26 +57,49 @@ export const verifyWebhookSignature = async (req: Request, res: Response, next: 
       logger.warn('Missing webhook signature or body', {
         headers: req.headers,
         hasSignature: !!signature,
-        hasBody: !!body
+        hasBody: !!req.body
       });
       return res.status(401).json({ error: 'Missing webhook signature or body' });
     }
 
-    const verified = await verifyWebhookSignatureHelper(signature, payload);
+    // Create a hash of the payload using the secret
+    const hash = createHash('sha256');
+    hash.update(payload);
+    const expectedSignature = `sha256=${hash.digest('hex')}`;
 
-    logger.info('Webhook signature verified', { verified });
-    if (!verified) {
+    if (signature !== expectedSignature) {
       logger.warn('Invalid webhook signature', {
         signature,
-        webhookSecret: GitHubAppConfig.GITHUB_WEBHOOK_SECRET
+        expectedSignature
       });
       return res.status(401).json({ error: 'Invalid webhook signature' });
     }
 
+    logger.info('Webhook signature verified');
     next();
   } catch (error) {
     logger.error('Error verifying webhook signature', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Get installation access token
+export const getInstallationToken = async ({
+  installationId
+}: {
+  installationId: number;
+}) => {
+  try {
+    const auth = await getGithubAuth();
+    const installation = await auth({
+      type: 'installation',
+      installationId
+    });
+
+    return installation;
+  } catch (error) {
+    logger.error('Error getting installation token', error);
+    throw error;
   }
 };
 
@@ -112,36 +137,17 @@ export const verifyJwtToken = async (req: Request, res: Response, next: NextFunc
 };
 
 // Verify GitHub token
-export const verifyToken = async (token: string) => {
+export const verifyToken = async (token: string): Promise<boolean> => {
   try {
     const auth = await getGithubAuth();
-    const auth = await createGithubAuth();
-    const authResult = await auth({
+    const installation = await auth({
       type: 'oauth-app',
       token
     });
-    return authResult;
+
+    return !!installation;
   } catch (error) {
     logger.error('Error verifying token', error);
-    throw error;
-  }
-};
-
-// Get installation access token
-export const getInstallationToken = async ({
-  installationId
-}: {
-  installationId: number;
-}) => {
-  try {
-    const auth = await createGithubAuth();
-    const token = await auth({
-      type: 'installation',
-      installationId
-    });
-    return token;
-  } catch (error) {
-    logger.error('Error getting installation token', error);
-    throw error;
+    return false;
   }
 };
