@@ -1,5 +1,10 @@
 import { ipcMain } from 'electron';
-import { SecurityHeaders, NodeSecurityConfig, ElectronSecurityConfig, ConfigFile, SecurityCheckResult, NpmAuditResponse, NvdVulnerability } from '../../shared/security/types';
+import { 
+  SecurityHeaders, 
+  NodeSecurityConfig, 
+  ElectronSecurityConfig, 
+  ConfigFile 
+} from '../../shared/security/types';
 import { execSync } from 'child_process';
 import { readFileSync } from 'fs';
 import * as path from 'path';
@@ -36,11 +41,12 @@ export function registerSecurityHandlers() {
     ipcMain.handle('scan-dependencies', async () => {
         try {
             const result = execSync('npm audit --json', { encoding: 'utf-8' });
-            const audit = JSON.parse(result);
+            const audit = JSON.parse(result) as { advisories?: Record<string, { title: string }> };
+            const advisories = audit.advisories || {};
             return {
                 name: 'Dependency Vulnerability Scan',
-                valid: Object.keys(audit.advisories || {}).length === 0,
-                errors: Object.values(audit.advisories || {}).map(advisory => advisory.title),
+                valid: Object.keys(advisories).length === 0,
+                errors: Object.values(advisories).map(advisory => advisory.title),
                 configFiles: [],
                 details: audit
             };

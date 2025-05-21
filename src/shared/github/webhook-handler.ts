@@ -1,163 +1,161 @@
-import { Probot } from 'probot';
-import { GitHubAppConfig } from './types';
-import { createGithubAuth } from './github-auth';
-import { GITHUB_APP_CONFIG } from './config';
+import { 
+  GitHubWebhookPayload, 
+  GitHubPullRequestPayload, 
+  GitHubPushPayload, 
+  GitHubIssuePayload,
+  GitHubEventHandlers
+} from './types';
 
-// Initialize Probot instance
-const probot = new Probot({
-  id: GITHUB_APP_CONFIG.id,
-  cert: GITHUB_APP_CONFIG.privateKey,
-  webhookSecret: GITHUB_APP_CONFIG.webhookSecret
-});
+/**
+ * Handles incoming GitHub webhook events
+ */
+export class WebhookHandler {
+  private eventHandlers: GitHubEventHandlers = {};
 
-// Create webhook handler
-export const webhookHandler = probot.webhook;
+  /**
+   * Register an event handler
+   * @param event - The GitHub event name
+   * @param handler - The handler function
+   */
+  on<T extends keyof GitHubEventHandlers>(
+    event: T,
+    handler: NonNullable<GitHubEventHandlers[T]>
+  ): void {
+    this.eventHandlers[event] = handler;
+  }
 
-// Event handlers
-probot.on(['pull_request.opened', 'pull_request.edited'], async (context) => {
-  const pr = context.payload.pull_request;
-  await handlePullRequest(context, pr);
-});
-
-probot.on('push', async (context) => {
-  await handlePush(context);
-});
-
-probot.on('issues.opened', async (context) => {
-  const issue = context.payload.issue;
-  await handleIssue(context, issue);
-});
-
-async function handlePullRequest(context: any, pr: any) {
-  try {
-    // Get the repository
-    const repo = context.repo();
-    
-    // Run security checks
-    const securityChecks = await runSecurityChecks(pr.head.sha);
-    
-    // Create a check suite
-    await context.octokit.checks.create({
-      ...repo,
-      head_sha: pr.head.sha,
-      name: 'FortiCode Security Scan',
-      status: 'in_progress',
-      started_at: new Date().toISOString(),
-      output: {
-        title: 'Security Scan in Progress',
-        summary: 'Running security checks on your code...'
+  /**
+   * Handle a GitHub webhook event
+   * @param event - The GitHub event name (e.g., 'pull_request', 'push', 'issues')
+   * @param payload - The webhook payload
+   */
+  async handleEvent(event: string, payload: GitHubWebhookPayload): Promise<void> {
+    try {
+      const handler = this.eventHandlers[event];
+      if (handler) {
+        await handler(payload as any);
+      } else {
+        console.log(`No handler registered for event: ${event}`);
       }
-    });
-    
-    // Process security checks
-    if (securityChecks.length > 0) {
-      // Create security report
-      const report = generateSecurityReport(securityChecks);
-      
-      // Comment on PR with findings
-      await context.octokit.issues.createComment({
-        ...repo,
-        issue_number: pr.number,
-        body: report
-      });
-      
-      // Update check status
-      await context.octokit.checks.update({
-        ...repo,
-        check_run_id: context.checkRun.id,
-        status: 'completed',
-        conclusion: 'failure',
-        completed_at: new Date().toISOString(),
-        output: {
-          title: 'Security Scan Complete',
-          summary: `Found ${securityChecks.length} security issues`,
-          text: report
-        }
-      });
+    } catch (error) {
+      console.error(`Error handling ${event} event:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Handle pull request events
+   * @param payload - The pull request webhook payload
+   */
+  async handlePullRequest(payload: GitHubPullRequestPayload): Promise<void> {
+    const handler = this.eventHandlers.pull_request;
+    if (handler) {
+      await handler(payload);
     } else {
-      // Update check status
-      await context.octokit.checks.update({
-        ...repo,
-        check_run_id: context.checkRun.id,
-        status: 'completed',
-        conclusion: 'success',
-        completed_at: new Date().toISOString(),
-        output: {
-          title: 'Security Scan Complete',
-          summary: 'No security issues found!'
-        }
-      });
+      console.log('No pull request handler registered');
     }
-  } catch (error) {
-    console.error('Error handling pull request:', error);
-    await context.octokit.checks.update({
-      ...context.repo(),
-      check_run_id: context.checkRun.id,
-      status: 'completed',
-      conclusion: 'failure',
-      completed_at: new Date().toISOString(),
-      output: {
-        title: 'Security Scan Failed',
-        summary: 'Failed to complete security scan',
-        text: error.message
-      }
-    });
+  }
+
+  /**
+   * Handle push events
+   * @param payload - The push webhook payload
+   */
+  async handlePush(payload: GitHubPushPayload): Promise<void> {
+    const handler = this.eventHandlers.push;
+    if (handler) {
+      await handler(payload);
+    } else {
+      console.log('No push handler registered');
+    }
+  }
+
+  /**
+   * Handle issue events
+   * @param payload - The issue webhook payload
+   */
+  async handleIssue(payload: GitHubIssuePayload): Promise<void> {
+    const handler = this.eventHandlers.issues;
+    if (handler) {
+      await handler(payload);
+    } else {
+      console.log('No issue handler registered');
+    }
+    // Add issue handling logic here
   }
 }
 
-async function handlePush(context: any) {
-  try {
-    const repo = context.repo();
-    const headCommit = context.payload.head_commit;
-    
-    // Run security checks on the push
-    const securityChecks = await runSecurityChecks(headCommit.id);
-    
-    if (securityChecks.length > 0) {
-      // Create an issue for security findings
-      await context.octokit.issues.create({
-        ...repo,
-        title: 'Security Issues Found in Recent Push',
-        body: generateSecurityReport(securityChecks)
-      });
-    }
-  } catch (error) {
-    console.error('Error handling push:', error);
-  }
-}
+// Export a default instance
+export const webhookHandler = new WebhookHandler();
 
-async function handleIssue(context: any, issue: any) {
-  // Handle security-related issues here
-  // This could be used to track security fixes or vulnerabilities
-}
-
-// Helper functions
-async function runSecurityChecks(commitSha: string): Promise<any[]> {
+/**
+ * Runs security checks on the given commit SHA
+ * @param _commitSha - The commit SHA to check (currently unused)
+ * @returns A promise that resolves to an array of security issues
+ */
+async function runSecurityChecks(_commitSha: string): Promise<Array<{
+  id: string;
+  severity: 'high' | 'medium' | 'low';
+  message: string;
+  file?: string;
+  line?: number;
+}>> {
   // TODO: Implement actual security checks
   // This is a placeholder for now
   return [];
 }
 
-function generateSecurityReport(checks: any[]): string {
-  let report = '## Security Scan Results\n\n';
-  
+/**
+ * Generates a markdown report from security check results
+ * @param checks - Array of security check results
+ * @returns A markdown formatted report string
+ */
+function generateSecurityReport(checks: Array<{
+  id: string;
+  severity: 'high' | 'medium' | 'low';
+  message: string;
+  file?: string;
+  line?: number;
+}>): string {
   if (checks.length === 0) {
-    report += 'No security issues found!\n';
-    return report;
+    return '## ✅ No security issues found!\n\n' +
+           'The security scan completed successfully and no issues were detected.';
   }
-  
-  report += `Found ${checks.length} security issues:\n\n`;
-  
-  checks.forEach((check, index) => {
-    report += `### Issue ${index + 1}\n`;
-    report += `**Severity:** ${check.severity}\n`;
-    report += `**Description:** ${check.description}\n`;
-    report += `**Files:** ${check.files.join(', ')}\n`;
-    if (check.fixable) {
-      report += `**Fix:** ${check.fix}\n`;
+
+  let report = '## 🔍 Security Scan Results\n\n' +
+              `Found ${checks.length} potential security issue${checks.length > 1 ? 's' : ''}:\n\n`;
+
+  const bySeverity = {
+    high: checks.filter(check => check.severity === 'high'),
+    medium: checks.filter(check => check.severity === 'medium'),
+    low: checks.filter(check => check.severity === 'low')
+  };
+
+  const severityEmoji = {
+    high: '🔴',
+    medium: '🟠',
+    low: '🔵'
+  };
+
+  (['high', 'medium', 'low'] as const).forEach(severity => {
+    const issues = bySeverity[severity];
+    if (issues.length > 0) {
+      report += `\n### ${severityEmoji[severity]} ${severity.charAt(0).toUpperCase() + severity.slice(1)} Severity (${issues.length})\n\n`;
+      issues.forEach(issue => {
+        report += `- ${issue.message}`;
+        if (issue.file) {
+          report += ` in \`${issue.file}${issue.line ? `:${issue.line}` : ''}\``;
+        }
+        report += '\n';
+      });
     }
-    report += '\n';
   });
-  
+
+  report += '\n---\n';
+  report += '> ℹ️ This is an automated security scan. ' +
+           'Please review these findings and address any issues as needed.';
+
   return report;
 }
+
+// Export utility functions for testing and external use
+export { runSecurityChecks, generateSecurityReport };

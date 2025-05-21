@@ -1,4 +1,5 @@
 import { SecurityScanService, SecurityScanResult } from '../scan-service';
+import { Mock } from 'vitest';
 
 export class TestSecurityScanService extends SecurityScanService {
   setScanResults(results: SecurityScanResult): void {
@@ -9,7 +10,7 @@ export class TestSecurityScanService extends SecurityScanService {
     return this.scanResults;
   }
 
-  getProcessFiles(): jest.Mock {
-    return this.processFiles as jest.Mock;
+  getProcessFiles(): Mock {
+    return this.processFiles as Mock;
   }
 }

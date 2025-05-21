@@ -35,35 +35,76 @@ To become the go-to security auditing solution for Electron applications, provid
 - [x] withFeatureGate HOC for class components
 - [x] Server-side license verification
 - [x] Graceful degradation for unlicensed features
+- [x] Comprehensive test coverage for all licensing functionality
 
 ## 📅 2025 Q4: Enhanced Features
 
 ### 🔍 Phase 3: Advanced Security Scanning
+- [ ] Performance Optimization & Scan Configuration
+  - [ ] Configurable scan intensity levels (Quick/Standard/Deep)
+  - [ ] Parallel processing for independent security checks
+  - [ ] File change detection and incremental scanning
+  - [ ] Scan progress tracking and time estimation
+  - [ ] Memory usage optimization for large codebases
+  - [ ] Background scanning with low-priority threads
+  - [ ] Caching mechanisms for unchanged files
+  - [ ] Selective scanning by file type or directory
+  - [ ] Resource usage limits configuration
+  - [ ] Performance impact analysis and reporting
+
+### 🔍 Phase 3.5: Performance & Scalability
+- [ ] Benchmarking suite for scan performance
+- [ ] Memory profiling and optimization
+- [ ] CPU usage optimization for large codebases
+- [ ] Network request optimization for remote scans
+- [ ] Progressive result loading for large scan outputs
+- [ ] Background processing for long-running scans
+- [ ] Scan scheduling during off-peak hours
+- [ ] Resource usage monitoring and alerts
+- [ ] Performance impact visualization
+- [ ] Automated performance regression testing
+
+### 🔍 Phase 4: Advanced Security Scanning
 - [x] Security headers validation (X-Content-Type-Options, X-Frame-Options, etc.)
 - [x] Dependency vulnerability scanning
 - [x] Node.js security best practices
 - [x] Electron-specific security checks
 - [x] Configuration file validation
 
-### 🌐 Phase 4: GitHub Integration
-- [ ] Repository scanning
-- [ ] Pull request security checks
-- [ ] Automated security reports
-- [ ] GitHub Actions integration
+### 🌐 Phase 5: GitHub Integration (Completed ✅)
+- [x] Repository scanning
+- [x] Pull request security checks
+- [x] Automated security reports
+- [x] GitHub Actions integration
 
 ## 📅 2026 Q1: Enterprise Readiness
 
-### 🏢 Phase 5: Team & Enterprise Features
+### 🏢 Phase 6: Team & Enterprise Features
 - [ ] Team collaboration features
 - [ ] Role-based access control
 - [ ] Audit logging
 - [ ] Self-hosted option
 
-### 📊 Phase 6: Analytics & Reporting
+### 📊 Phase 7: Analytics & Reporting
 - [ ] Security score calculation
 - [ ] Trend analysis
 - [ ] Custom report generation
 - [ ] Export capabilities
+
+## ⚠️ Current Limitations
+
+### Performance Considerations
+- **Sequential Scanning**: Security checks currently run sequentially, which may be slow for large codebases
+- **No Incremental Scans**: Full scans are performed each time without change detection
+- **Resource Intensive**: No built-in resource throttling or prioritization
+- **Limited Progress Feedback**: No detailed progress tracking during scans
+- **No Scan Profiles**: Cannot save/load different scan configurations
+
+### How to Mitigate
+1. For large codebases, consider breaking scans into smaller directories
+2. Schedule full scans during off-peak hours
+3. Monitor system resources during scanning
+4. Provide feedback on performance issues for future optimization
 
 ## 🔮 Future Possibilities
 

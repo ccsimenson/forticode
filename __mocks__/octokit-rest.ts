@@ -1,9 +1,11 @@
 // Mock implementation of @octokit/rest
+import { vi } from 'vitest';
+
 export const Octokit = class MockOctokit {
-    static defaults = jest.fn().mockReturnThis();
-    auth = jest.fn();
+    static defaults = vi.fn().mockReturnThis();
+    auth = vi.fn();
     repos = {
-      getContent: jest.fn().mockImplementation(({ path }) => {
+      getContent: vi.fn().mockImplementation(({ path }) => {
         // For the error test case
         if (path === 'error.txt') {
           return Promise.reject(new Error('File not found'));
@@ -49,20 +51,20 @@ export const Octokit = class MockOctokit {
         });
       }),
     };
-    paginate = jest.fn();
-    request = jest.fn();
-    graphql = jest.fn();
+    paginate = vi.fn();
+    request = vi.fn();
+    graphql = vi.fn();
     log = {
-      debug: jest.fn(),
-      info: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn()
+      debug: vi.fn(),
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn()
     };
     hook = {
-      wrap: jest.fn((_event: string, callback: () => any) => callback()),
-      before: jest.fn(),
-      after: jest.fn(),
-      error: jest.fn()
+      wrap: vi.fn((_event: string, callback: () => any) => callback()),
+      before: vi.fn(),
+      after: vi.fn(),
+      error: vi.fn()
     };
   
     constructor(options: any) {

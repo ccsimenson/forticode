@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist/main",
     /* Base Options */
     "target": "ES2020",
     "module": "ESNext",

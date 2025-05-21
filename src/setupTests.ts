@@ -1,4 +1,5 @@
-import '@testing-library/jest-dom';
+// Vitest setup
+import { vi, afterAll } from 'vitest';
 
 // Extend the Window interface to include our electron property
 declare global {
@@ -22,14 +23,14 @@ declare global {
 
 // Mock window.electron
 const mockIpcRenderer = {
-  send: jest.fn(),
-  on: jest.fn().mockImplementation((_channel: string, _listener: (...args: any[]) => void) => {
+  send: vi.fn(),
+  on: vi.fn().mockImplementation((_channel: string, _listener: (...args: any[]) => void) => {
     // Return a cleanup function
-    return () => jest.fn();
+    return () => vi.fn();
   }),
-  once: jest.fn(),
-  removeAllListeners: jest.fn(),
-  invoke: jest.fn().mockResolvedValue(undefined),
+  once: vi.fn(),
+  removeAllListeners: vi.fn(),
+  invoke: vi.fn().mockResolvedValue(undefined),
 };
 
 window.electron = {
@@ -42,7 +43,7 @@ window.electron = {
 };
 
 // Mock window.require for Electron modules
-const mockRequire = jest.fn().mockImplementation((module: string) => {
+const mockRequire = vi.fn().mockImplementation((module: string) => {
   if (module === 'electron') {
     return {
       ipcRenderer: mockIpcRenderer,
@@ -59,25 +60,28 @@ Object.assign(mockRequire, {
   cache: {},
   extensions: {},
   main: undefined,
-  resolve: jest.fn(),
+  resolve: vi.fn(),
 });
 
 // @ts-ignore - We're intentionally mocking require
-window.require = mockRequire as unknown as NodeJS.Require;
+Object.defineProperty(window, 'require', {
+  value: mockRequire,
+  writable: true,
+  configurable: true,
+});
 
 // Mock global console methods
 const originalConsole = { ...console };
-const mockConsole = {
-  ...console,
-  error: jest.fn(),
-  warn: jest.fn(),
-  log: jest.fn(),
-  info: jest.fn(),
-  debug: jest.fn(),
-};
+Object.assign(console, {
+  error: vi.fn(),
+  warn: vi.fn(),
+  log: vi.fn(),
+  info: vi.fn(),
+  debug: vi.fn(),
+});
 
 // @ts-ignore - We're intentionally mocking console
-global.console = mockConsole;
+global.console = console;
 
 // Restore original console in afterAll
 afterAll(() => {
@@ -87,9 +91,9 @@ afterAll(() => {
 
 // Mock ResizeObserver
 class MockResizeObserver {
-  observe = jest.fn();
-  unobserve = jest.fn();
-  disconnect = jest.fn();
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
 }
 
 // @ts-ignore - We're intentionally mocking ResizeObserver
@@ -98,15 +102,15 @@ window.ResizeObserver = MockResizeObserver;
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation(query => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(),
-    removeListener: jest.fn(),
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
   })),
 });
 

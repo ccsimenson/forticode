@@ -1,9 +1,37 @@
 import { ipcRenderer } from 'electron';
-import { SecurityCheck, SecurityScanResult, Vulnerability, SecurityHeaders, NodeSecurityConfig, ElectronSecurityConfig, ConfigFile } from './types.js';
+import { SecurityCheck, SecurityScanResult, NvdVulnerability as Vulnerability, SecurityHeaders, NodeSecurityConfig, ElectronSecurityConfig, ConfigFile, SecurityCheckResult } from './types';
 
 export class SecurityScanner {
     private static instance: SecurityScanner;
     private checks: SecurityCheck[];
+
+    private createErrorResult(checkName: string, error: unknown): SecurityCheckResult {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        return {
+            name: checkName,
+            valid: false,
+            errors: [errorMessage],
+            details: { error: errorMessage }
+        };
+    }
+
+    private createSuccessResult(checkName: string, details: any = {}, errors: string[] = []): SecurityCheckResult {
+        return {
+            name: checkName,
+            valid: true,
+            errors,
+            details
+        };
+    }
+
+    private createFailureResult(checkName: string, details: any = {}, errors: string[] = ['Check failed']): SecurityCheckResult {
+        return {
+            name: checkName,
+            valid: false,
+            errors,
+            details
+        };
+    }
 
     private constructor() {
         this.checks = [
@@ -34,15 +62,12 @@ export class SecurityScanner {
                 results.checks.push({
                     name: check.name,
                     result,
-                    status: result.passed ? 'PASS' : 'FAIL'
+                    status: result.valid ? 'PASS' : 'FAIL'
                 });
             } catch (error) {
                 results.checks.push({
                     name: check.name,
-                    result: {
-                        passed: false,
-                        details: { error: error instanceof Error ? error.message : 'Unknown error' }
-                    },
+                    result: this.createErrorResult(check.name, error),
                     status: 'ERROR'
                 });
             }
@@ -52,9 +77,10 @@ export class SecurityScanner {
     }
 
     private createSecurityHeadersCheck(): SecurityCheck {
+        const checkName = 'Security Headers Validation';
         return {
-            name: 'Security Headers Validation',
-            run: async () => {
+            name: checkName,
+            run: async (): Promise<SecurityCheckResult> => {
                 try {
                     const headers: SecurityHeaders = await ipcRenderer.invoke('get-security-headers');
                     const checks = {
@@ -64,119 +90,146 @@ export class SecurityScanner {
                         'Content-Security-Policy': !!headers['Content-Security-Policy']
                     };
                     
-                    return {
-                        passed: Object.values(checks).every(Boolean),
-                        details: checks
-                    };
+                    const allValid = Object.values(checks).every(Boolean);
+                    if (allValid) {
+                        return this.createSuccessResult(checkName, { checks });
+                    } else {
+                        return this.createFailureResult(
+                            checkName, 
+                            { checks },
+                            ['Some security headers are missing or misconfigured']
+                        );
+                    }
                 } catch (error) {
-                    return {
-                        passed: false,
-                        details: { error: error instanceof Error ? error.message : 'Unknown error' }
-                    };
+                    return this.createErrorResult(checkName, error);
                 }
             }
         };
     }
 
     private createDependencyCheck(): SecurityCheck {
+        const checkName = 'Dependency Vulnerability Scan';
         return {
-            name: 'Dependency Vulnerability Scan',
-            run: async () => {
+            name: checkName,
+            run: async (): Promise<SecurityCheckResult> => {
                 try {
                     const vulnerabilities: Vulnerability[] = await ipcRenderer.invoke('scan-dependencies');
-                    return {
-                        passed: vulnerabilities.length === 0,
-                        details: {
-                            totalDependencies: vulnerabilities.length,
-                            critical: vulnerabilities.filter(v => v.severity === 'critical').length,
-                            high: vulnerabilities.filter(v => v.severity === 'high').length,
-                            medium: vulnerabilities.filter(v => v.severity === 'medium').length,
-                            low: vulnerabilities.filter(v => v.severity === 'low').length,
-                            vulnerabilities
-                        }
+                    const hasVulnerabilities = vulnerabilities.length > 0;
+                    const details = {
+                        totalDependencies: vulnerabilities.length,
+                        critical: vulnerabilities.filter(v => v.severity === 'critical').length,
+                        high: vulnerabilities.filter(v => v.severity === 'high').length,
+                        medium: vulnerabilities.filter(v => v.severity === 'medium').length,
+                        low: vulnerabilities.filter(v => v.severity === 'low').length,
+                        vulnerabilities
                     };
+
+                    if (hasVulnerabilities) {
+                        return this.createFailureResult(
+                            checkName,
+                            details,
+                            ['Vulnerable dependencies found']
+                        );
+                    } else {
+                        return this.createSuccessResult(checkName, details);
+                    }
                 } catch (error) {
-                    return {
-                        passed: false,
-                        details: { error: error instanceof Error ? error.message : 'Unknown error' }
-                    };
+                    return this.createErrorResult(checkName, error);
                 }
             }
         };
     }
 
     private createNodeSecurityCheck(): SecurityCheck {
+        const checkName = 'Node.js Security Best Practices';
         return {
-            name: 'Node.js Security Best Practices',
-            run: async () => {
+            name: checkName,
+            run: async (): Promise<SecurityCheckResult> => {
                 try {
                     const nodeConfig: NodeSecurityConfig = await ipcRenderer.invoke('get-node-config');
-                    return {
-                        passed: this.validateNodeSecurity(nodeConfig),
-                        details: {
-                            nodeVersion: nodeConfig.version,
-                            securitySettings: nodeConfig.security,
-                            auditEnabled: nodeConfig.audit
-                        }
+                    const isValid = this.validateNodeSecurity(nodeConfig);
+                    const details = {
+                        nodeVersion: nodeConfig.version,
+                        securitySettings: nodeConfig.security,
+                        auditEnabled: nodeConfig.audit
                     };
+
+                    if (isValid) {
+                        return this.createSuccessResult(checkName, details);
+                    } else {
+                        return this.createFailureResult(
+                            checkName,
+                            details,
+                            ['Node.js security configuration is not optimal']
+                        );
+                    }
                 } catch (error) {
-                    return {
-                        passed: false,
-                        details: { error: error instanceof Error ? error.message : 'Unknown error' }
-                    };
+                    return this.createErrorResult(checkName, error);
                 }
             }
         };
     }
 
     private createElectronSecurityCheck(): SecurityCheck {
+        const checkName = 'Electron Security Configuration';
         return {
-            name: 'Electron Security Configuration',
-            run: async () => {
+            name: checkName,
+            run: async (): Promise<SecurityCheckResult> => {
                 try {
                     const electronConfig: ElectronSecurityConfig = await ipcRenderer.invoke('get-electron-config');
-                    return {
-                        passed: this.validateElectronSecurity(electronConfig),
-                        details: {
-                            contextIsolation: electronConfig.contextIsolation,
-                            nodeIntegration: electronConfig.nodeIntegration,
-                            sandbox: electronConfig.sandbox
-                        }
+                    const isValid = this.validateElectronSecurity(electronConfig);
+                    const details = {
+                        contextIsolation: electronConfig.contextIsolation,
+                        nodeIntegration: electronConfig.nodeIntegration,
+                        sandbox: electronConfig.sandbox
                     };
+
+                    if (isValid) {
+                        return this.createSuccessResult(checkName, details);
+                    } else {
+                        return this.createFailureResult(
+                            checkName,
+                            details,
+                            ['Electron security configuration is not optimal']
+                        );
+                    }
                 } catch (error) {
-                    return {
-                        passed: false,
-                        details: { error: error instanceof Error ? error.message : 'Unknown error' }
-                    };
+                    return this.createErrorResult(checkName, error);
                 }
             }
         };
     }
 
     private createConfigValidationCheck(): SecurityCheck {
+        const checkName = 'Configuration File Validation';
         return {
-            name: 'Configuration File Validation',
-            run: async () => {
+            name: checkName,
+            run: async (): Promise<SecurityCheckResult> => {
                 try {
                     const configFiles: ConfigFile[] = await ipcRenderer.invoke('get-config-files');
                     const validFiles = configFiles.filter(file => file.valid);
                     const invalidFiles = configFiles.filter(file => !file.valid);
                     
-                    return {
-                        passed: invalidFiles.length === 0,
-                        details: {
-                            validFiles: validFiles.map(file => file.path),
-                            invalidFiles: invalidFiles.map(file => ({
-                                path: file.path,
-                                errors: file.errors
-                            }))
-                        }
+                    const allValid = invalidFiles.length === 0;
+                    const details = {
+                        validFiles: validFiles.map(file => file.path),
+                        invalidFiles: invalidFiles.map(file => ({
+                            path: file.path,
+                            errors: file.errors || []
+                        }))
                     };
+
+                    if (allValid) {
+                        return this.createSuccessResult(checkName, details);
+                    } else {
+                        return this.createFailureResult(
+                            checkName,
+                            details,
+                            ['Some configuration files are invalid']
+                        );
+                    }
                 } catch (error) {
-                    return {
-                        passed: false,
-                        details: { error: error instanceof Error ? error.message : 'Unknown error' }
-                    };
+                    return this.createErrorResult(checkName, error);
                 }
             }
         };

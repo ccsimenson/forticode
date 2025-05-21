@@ -1,9 +1,11 @@
 import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import { CspValidator } from '@modules/csp/CspValidator.js';
 import { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer';
 const install = require('electron-devtools-installer');
+
+// In CommonJS, __filename and __dirname are available by default
+// No need to define them manually
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling
 if (require('electron-squirrel-startup')) {
@@ -29,8 +31,7 @@ function registerIpcHandlers() {
   });
 }
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// __filename and __dirname are already available in CommonJS
 
 // Environment variables from Vite
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;

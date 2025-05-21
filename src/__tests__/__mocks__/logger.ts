@@ -1,9 +1,9 @@
 // Mock implementation of logger
 const logger = {
-  info: jest.fn(),
-  warn: jest.fn(),
-  error: jest.fn(),
-  debug: jest.fn(),
+  info: () => {},
+  warn: () => {},
+  error: () => {},
+  debug: () => {},
 };
 
 export default logger;

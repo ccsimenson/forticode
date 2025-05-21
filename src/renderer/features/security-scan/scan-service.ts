@@ -1,5 +1,5 @@
-import GithubService from '@shared/github.service';
-import type { default as GithubServiceType } from '@shared/github.service';
+import GithubService from '@shared/github/github.service';
+import type { default as GithubServiceType } from '@shared/github/github.service';
 import logger from '@renderer/utils/logger';
 import { SecurityIssue, SecurityScanResult, ScanOptions } from './types';
 
@@ -75,12 +75,12 @@ export class SecurityScanService {
         ref: this.scanResults.branch
       });
 
-      if (!contents?.data || (Array.isArray(contents.data) && contents.data.length === 0)) {
+      if (!contents || (Array.isArray(contents) && contents.length === 0)) {
         this.logger.error('No files found in repository');
         return this.scanResults;
       }
 
-      const files = Array.isArray(contents.data) ? contents.data : [contents.data];
+      const files = Array.isArray(contents) ? contents : [contents];
       this.scanResults.totalFiles = files.length;
       await this.processFiles(files);
 

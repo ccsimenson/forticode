@@ -9,28 +9,24 @@ declare module '@shared/github.service' {
   export default mockGithubService;
 }
 
-declare module '@renderer/utils/logger' {
-  const logger: {
-    info: jest.Mock;
-    warn: jest.Mock;
-    error: jest.Mock;
-    debug: jest.Mock;
-  };
-  export default logger;
-}
+// Mock logger
+declare const logger: {
+  info: Vi.Mock;
+  warn: Vi.Mock;
+  error: Vi.Mock;
+  debug: Vi.Mock;
+};
 
 // Add global test types
 declare namespace NodeJS {
   interface Global {
-    // Add any global test utilities or mocks here
+    logger: typeof logger;
   }
 }
 
-// Add Jest matchers
-declare global {
-  namespace jest {
-    interface Matchers<R> {
-      // Add any custom matchers here
-    }
+// Add Vitest matchers
+declare namespace Vi {
+  interface Matchers<R> {
+    toBeWithinRange(a: number, b: number): R;
   }
 }

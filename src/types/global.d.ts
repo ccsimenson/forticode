@@ -1,10 +1,11 @@
 // Global type declarations for the project
 
 // Declare modules for path aliases
-declare module '@shared/github.service' {
-  import GithubService from '../../src/shared/github.service';
-  export type { GithubServiceOptions } from '../../src/shared/github.service';
-  export default GithubService;
+declare module '@shared/github' {
+  import { GitHubService } from '../../shared/github/github.service';
+  export * from '../../shared/github/types';
+  export { GitHubService, GitHubServiceOptions } from '../../shared/github/github.service';
+  export { GitHubService as default };
 }
 
 declare module '@renderer/utils/logger' {

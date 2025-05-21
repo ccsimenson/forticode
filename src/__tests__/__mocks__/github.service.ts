@@ -1,17 +1,14 @@
 // Mock implementation of GithubService
 class MockGithubService {
-  private token: string;
-
-  constructor(token: string) {
-    this.token = token;
-  }
+  // Token parameter is accepted but not used in the mock
+  constructor(_token: string) {}
 
   // Mock methods that are used in the tests
-  async getRepoContent(options: any): Promise<any> {
+  async getRepoContent(_options: unknown): Promise<unknown[]> {
     return [];
   }
 
-  async getFileContent(options: any): Promise<string> {
+  async getFileContent(_options: unknown): Promise<string> {
     return '';
   }
 }

@@ -1,4 +1,4 @@
-import '../styles/global.css';
+import './styles/global.css';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import SecurityTest from './pages/SecurityTest';
 

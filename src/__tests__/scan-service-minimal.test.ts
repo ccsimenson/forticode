@@ -1,6 +1,7 @@
 import { SecurityScanService } from '@renderer/features/security-scan/scan-service';
 import { ScanOptions } from '@renderer/features/security-scan/types';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { mockGitHubService } from '@/__mocks__/@shared/github/github.service';
 
 // Mock logger
 vi.mock('@renderer/utils/logger', () => ({
@@ -13,13 +14,8 @@ vi.mock('@renderer/utils/logger', () => ({
 }));
 
 // Mock GitHub service
-const mockGithubService = {
-  getContents: vi.fn(),
-  getFileContent: vi.fn()
-};
-
-vi.mock('@shared/github.service', () => ({
-  default: vi.fn(() => mockGithubService)
+vi.mock('@shared/github/github.service', () => ({
+  default: vi.fn(() => mockGitHubService)
 }));
 
 describe('SecurityScanService', () => {
@@ -39,13 +35,8 @@ describe('SecurityScanService', () => {
     service = new SecurityScanService();
     
     // Set up default mock implementations
-    mockGithubService.getContents.mockResolvedValue({
-      data: []
-    });
-    
-    mockGithubService.getFileContent.mockResolvedValue({
-      content: 'dGVzdCBjb250ZW50' // 'test content' in base64
-    });
+    mockGitHubService.getContents.mockResolvedValue([]);
+    mockGitHubService.getFileContent.mockResolvedValue('test content');
   });
 
   describe('startScan', () => {
@@ -69,16 +60,21 @@ describe('SecurityScanService', () => {
       
       // Assert
       expect(result).toBeDefined();
-      expect(mockGithubService.getContents).toHaveBeenCalled();
+      expect(mockGitHubService.getContents).toHaveBeenCalledWith({
+        owner: 'test-owner',
+        repo: 'test-repo',
+        ref: 'main'
+      });
     });
 
     it('should handle errors during scanning', async () => {
       // Arrange
       const error = new Error('Failed to scan repository');
-      mockGithubService.getContents.mockRejectedValueOnce(error);
+      mockGitHubService.getContents.mockRejectedValueOnce(error);
       
       // Act & Assert
       await expect(service.startScan(testOptions)).rejects.toThrow('Failed to scan repository');
+      expect(mockGitHubService.getContents).toHaveBeenCalled();
     });
   });
 });

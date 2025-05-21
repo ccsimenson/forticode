@@ -3,16 +3,17 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
-    "lib": ["ES2020"],
     "moduleResolution": "node",
-    "resolveJsonModule": true,
     "esModuleInterop": true,
+    "lib": ["ES2020"],
+    "resolveJsonModule": true,
+    "outDir": "../dist/main",
+    "rootDir": "./src",
     "sourceMap": true,
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "outDir": "dist/main/",
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
@@ -28,17 +29,12 @@
     "allowImportingTsExtensions": false
   },
   "include": [
-    "src/main/index.ts",
-    "src/main/main.ts",
-    "src/main/preload.ts",
-    "src/main/security/**/*.ts",
-    "src/shared/**/*.ts",
-    "src/modules/**/*.ts"
+    "src/main/**/*.ts",
+    "src/shared/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.spec.ts",
     "**/*.test.ts"
   ]
 }
