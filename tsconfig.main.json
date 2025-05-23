@@ -3,38 +3,37 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "CommonJS",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "lib": ["ES2020"],
-    "resolveJsonModule": true,
-    "outDir": "../dist/main",
+    "outDir": "./dist",
     "rootDir": "./src",
-    "sourceMap": true,
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@main/*": ["src/main/*"],
-      "@renderer/*": ["src/renderer/*"],
-      "@shared/*": ["src/shared/*"],
-      "@main/security/*": ["src/main/security/*"],
-      "@modules/*": ["src/modules/*"]
-    },
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "sourceMap": true,
     "types": ["node", "electron"],
-    "tsBuildInfoFile": "dist/main/tsconfig.tsbuildinfo",
-    "noEmit": false,
-    "allowImportingTsExtensions": false
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"],
+      "@main/*": ["main/*"],
+      "@renderer/*": ["renderer/*"],
+      "@shared/*": ["shared/*"],
+      "@modules/*": ["modules/*"]
+    }
   },
   "include": [
     "src/main/**/*.ts",
-    "src/shared/**/*.ts"
+    "src/main/**/*.js",
+    "src/shared/**/*.ts",
+    "src/shared/**/*.js",
+    "src/modules/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "**/__tests__/**"
   ]
 }

@@ -1,31 +1,103 @@
 #!/usr/bin/env node
 
-const { writeFile, readdir, copyFile, unlink, rmdir } = require('fs/promises');
-const { join, dirname } = require('path');
+const fs = require('fs');
+const { writeFile } = require('fs/promises');
+const path = require('path');
 const { execSync } = require('child_process');
-const { existsSync, mkdirSync } = require('fs');
 
-// Define paths
-const distPath = join(__dirname, '../dist');
-const mainDistPath = join(distPath, 'main');
-const srcMainPath = join(__dirname, '../src/main');
+// Helper functions
+const existsSync = fs.existsSync;
+const mkdirSync = fs.mkdirSync;
+const join = path.join;
 
+const projectRoot = path.join(__dirname, '..');
+const srcMainPath = path.join(projectRoot, 'src/main');
+const distPath = path.join(projectRoot, 'dist');
+const mainDistPath = path.join(distPath, 'main');
+
+console.log('Starting build process...');
+
+// Clean dist directory
 console.log('Cleaning dist directory...');
-if (existsSync(distPath)) {
-    require('rimraf').sync(distPath);
+if (fs.existsSync(distPath)) {
+    fs.rmSync(distPath, { recursive: true, force: true });
 }
-
-// Create fresh directories
-mkdirSync(distPath, { recursive: true });
-mkdirSync(mainDistPath, { recursive: true });
+fs.mkdirSync(distPath, { recursive: true });
+fs.mkdirSync(mainDistPath, { recursive: true });
 
 console.log('Compiling TypeScript...');
 try {
-    // Compile TypeScript with specific configuration
-    execSync('npx tsc -p tsconfig.main.json --outDir dist/main --rootDir src --module commonjs --target es2020 --moduleResolution node', { 
+    // Compile TypeScript using the existing tsconfig.main.json
+    execSync('npx tsc -p tsconfig.main.json --pretty', {
         stdio: 'inherit',
-        cwd: __dirname + '/..' 
+        cwd: projectRoot
     });
+    
+    // Run tsc-alias to resolve path aliases
+    console.log('Resolving path aliases...');
+    execSync('npx tsc-alias -p tsconfig.main.json', {
+        stdio: 'inherit',
+        cwd: projectRoot
+    });
+    
+        // Verify output directory
+    console.log('Verifying output directory...');
+    const outputFiles = fs.readdirSync(join(__dirname, '../dist/main'), { withFileTypes: true });
+    console.log('Output files:', outputFiles.map(f => f.name).join(', '));
+    
+    // Copy modules directory to dist
+    console.log('Copying modules directory...');
+    const srcModulesPath = join(projectRoot, 'src/modules');
+    const destModulesPath = join(distPath, 'modules');
+    if (fs.existsSync(srcModulesPath)) {
+        if (!fs.existsSync(destModulesPath)) {
+            fs.mkdirSync(destModulesPath, { recursive: true });
+        }
+        copyDirSync(srcModulesPath, destModulesPath);
+    }
+    
+    // Copy shared directory to dist
+    console.log('Copying shared directory...');
+    const srcSharedPath = join(projectRoot, 'src/shared');
+    const destSharedPath = join(distPath, 'shared');
+    if (fs.existsSync(srcSharedPath)) {
+        if (!fs.existsSync(destSharedPath)) {
+            fs.mkdirSync(destSharedPath, { recursive: true });
+        }
+        copyDirSync(srcSharedPath, destSharedPath);
+    }
+    
+    // Verify final output
+    console.log('Final output files:');
+    const finalFiles = fs.readdirSync(join(__dirname, '../dist/main'), { withFileTypes: true, recursive: true });
+    finalFiles.forEach(file => {
+        console.log(`- ${file.path}\\${file.name}${file.isDirectory() ? ' (dir)' : ''}`);
+    });
+    
+    // Then, move files from dist/main/main to dist/main if needed
+    const mainSubDir = join(mainDistPath, 'main');
+    if (existsSync(mainSubDir)) {
+        console.log('Moving files from dist/main/main to dist/main...');
+        const files = fs.readdirSync(mainSubDir, { withFileTypes: true });
+        
+        for (const file of files) {
+            const srcPath = join(mainSubDir, file.name);
+            const destPath = join(mainDistPath, file.name);
+            
+            if (file.isDirectory()) {
+                // For directories, we need to copy their contents
+                copyDirSync(srcPath, destPath);
+                require('rimraf').sync(srcPath);
+            } else {
+                // For files, just move them
+                fs.renameSync(srcPath, destPath);
+            }
+        }
+        
+        // Remove the now-empty directory
+        fs.rmdirSync(mainSubDir);
+    }
+    
     console.log('TypeScript compilation completed successfully');
 } catch (error) {
     console.error('TypeScript compilation failed:', error);
@@ -60,7 +132,7 @@ async function copyFiles() {
         const src = join(srcMainPath, file);
         const dest = join(mainDistPath, file);
         if (existsSync(src)) {
-            await copyFile(src, dest);
+            await fs.copyFile(src, dest);
             console.log(`Copied ${file} to dist/main`);
         }
     }
@@ -71,16 +143,12 @@ copyFiles().catch(err => {
     process.exit(1);
 });
 
-// Write package.json
-writeFile(join(mainDistPath, 'package.json'), JSON.stringify(packageJson, null, 2))
-    .catch(err => console.error('Error creating main process package.json:', err));
-
 // Move files from dist/main/main to dist/main
 async function moveFilesUp() {
     const sourceDir = join(mainDistPath, 'main');
     if (!existsSync(sourceDir)) return;
 
-    const files = await readdir(sourceDir, { withFileTypes: true });
+    const files = await fs.readdir(sourceDir, { withFileTypes: true });
     
     for (const file of files) {
         const sourcePath = join(sourceDir, file.name);
@@ -92,18 +160,21 @@ async function moveFilesUp() {
             await removeDir(sourcePath);
         } else {
             // For files, just move them
-            await copyFile(sourcePath, destPath);
-            await unlink(sourcePath);
+            await fs.copyFile(sourcePath, destPath);
+            await fs.unlink(sourcePath);
         }
     }
     
     // Remove the now-empty directory
-    await rmdir(sourceDir);
+    await fs.rmdir(sourceDir);
 }
 
 async function copyDir(src, dest) {
-    await mkdir(dest, { recursive: true });
-    const entries = await readdir(src, { withFileTypes: true });
+    if (!existsSync(dest)) {
+        await fs.mkdir(dest, { recursive: true });
+    }
+    
+    const entries = await fs.readdir(src, { withFileTypes: true });
     
     for (const entry of entries) {
         const srcPath = join(src, entry.name);
@@ -112,24 +183,45 @@ async function copyDir(src, dest) {
         if (entry.isDirectory()) {
             await copyDir(srcPath, destPath);
         } else {
-            await copyFile(srcPath, destPath);
+            await fs.copyFile(srcPath, destPath);
         }
     }
 }
 
 async function removeDir(dir) {
-    const entries = await readdir(dir, { withFileTypes: true });
+    const entries = await fs.readdir(dir, { withFileTypes: true });
     
     for (const entry of entries) {
-        const fullPath = join(dir, entry.name);
+        const entryPath = join(dir, entry.name);
+        
         if (entry.isDirectory()) {
-            await removeDir(fullPath);
+            await removeDir(entryPath);
         } else {
-            await unlink(fullPath);
+            await fs.unlink(entryPath);
         }
     }
     
-    await rmdir(dir);
+    await fs.rmdir(dir);
+}
+
+// Helper function to copy directories synchronously
+function copyDirSync(src, dest) {
+    if (!existsSync(dest)) {
+        mkdirSync(dest, { recursive: true });
+    }
+    
+    const entries = fs.readdirSync(src, { withFileTypes: true });
+    
+    for (const entry of entries) {
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+        
+        if (entry.isDirectory()) {
+            copyDirSync(srcPath, destPath);
+        } else {
+            fs.copyFileSync(srcPath, destPath);
+        }
+    }
 }
 
 // Execute the file movement

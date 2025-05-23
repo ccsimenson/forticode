@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, session, shell } from 'electron';
 import path from 'path';
-import { CspValidator } from '@modules/csp/CspValidator.js';
+const CspValidator = require('../../dist/modules/csp/CspValidator').default;
 import { REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS } from 'electron-devtools-installer';
 const install = require('electron-devtools-installer');
 

@@ -129,6 +129,7 @@
     "prettier": "^3.2.5",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.8.3",
     "vite": "^6.3.5",
     "vite-plugin-node-polyfills": "^0.23.0",
