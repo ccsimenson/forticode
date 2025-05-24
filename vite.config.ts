@@ -89,8 +89,20 @@ export default defineConfig({
     'process.platform': JSON.stringify(process.platform)
   },
   server: {
-    port: 3000,
-    strictPort: true
+    port: 3001,
+    strictPort: true,
+    cors: true,
+    watch: {
+      // Reduce file system events for better performance
+      usePolling: false,
+      // Don't watch node_modules
+      ignored: ['**/node_modules/**', '**/.git/**'],
+    },
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization'
+    }
   },
   build: {
     emptyOutDir: false, // Required for electron-builder

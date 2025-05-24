@@ -2,15 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#121212">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <meta name="description" content="Electron Security Auditor Application">
   <title>Electron Security Auditor</title>
-  <!-- Load Inter font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Load Material Icons -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-  <!-- Load global styles -->
-  <link rel="stylesheet" href="./styles/global.css">
+  <!-- Preconnect to external domains -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Load Inter font with font-display: swap -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <!-- Load Material Icons with font-display: swap -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" media="print" onload="this.media='all'">
+  <!-- Inline critical CSS -->
+  <style>
+    /* Critical CSS */
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    #root {
+      height: 100%;
+    }
+  </style>
+  <!-- Load non-critical CSS asynchronously -->
+  <link rel="stylesheet" href="./styles/global.css" media="print" onload="this.media='all'">
   <style>
     :root {
       --primary-color: #7F00FF;
@@ -28,6 +48,6 @@
 <body>
   <div id="root"></div>
   <!-- This script is the main entry point for the renderer process -->
-  <script type="module" src="./index.tsx"></script>
+  <script type="module" src="./main.tsx"></script>
 </body>
 </html>

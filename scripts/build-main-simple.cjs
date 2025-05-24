@@ -53,6 +53,22 @@ if (fs.existsSync(sharedSourcePath)) {
     process.exit(1);
 }
 
+// Create modules directory in dist
+const modulesDestPath = path.join(distPath, 'modules');
+fs.mkdirSync(modulesDestPath, { recursive: true });
+console.log('Modules directory:', modulesDestPath);
+
+// Copy modules files
+const modulesSourcePath = path.join(projectRoot, 'src/modules');
+if (fs.existsSync(modulesSourcePath)) {
+    console.log('Copying modules from:', modulesSourcePath);
+    fs.cpSync(modulesSourcePath, modulesDestPath, { recursive: true });
+    console.log('Modules copied successfully');
+} else {
+    console.error('Modules source directory not found at:', modulesSourcePath);
+    process.exit(1);
+}
+
 // Create a temporary tsconfig file with the correct paths
 console.log('\n=== Creating temporary tsconfig ===');
 const tsConfigPath = path.join(projectRoot, 'tsconfig.main-only.json');
@@ -63,7 +79,8 @@ const tsConfig = JSON.parse(fs.readFileSync(tsConfigPath, 'utf8'));
 
 // Update the paths to work with the dist directory structure
 tsConfig.compilerOptions.paths = {
-    "@shared/*": ["../shared/*"]
+    "@shared/*": ["../shared/*"],
+    "@modules/*": ["../modules/*"]
 };
 
 // Write the temporary tsconfig

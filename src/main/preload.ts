@@ -1,7 +1,7 @@
 // @ts-check
 import { contextBridge, ipcRenderer } from 'electron';
 // Using the @shared alias defined in tsconfig
-import { IpcChannels } from '@shared/ipc';
+import { IpcChannels } from '@shared/ipc'; // Module path without extension
 
 // Extend the global Window interface
 declare global {

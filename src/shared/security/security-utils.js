@@ -1,5 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Utility class for security-related functions
+ */
 class SecurityUtils {
     /**
      * Generate a human-readable report from scan results
@@ -20,25 +23,13 @@ class SecurityUtils {
             report += `### ${check.name} - ${check.status}\n`;
             if (check.status === 'ERROR') {
                 report += `Error: ${check.result.details['error']}\n\n`;
+                continue;
             }
-            else {
-                const details = check.result.details;
-                if (details) {
-                    for (const [key, value] of Object.entries(details)) {
-                        if (typeof value === 'object') {
-                            report += `#### ${key}\n`;
-                            if (value) {
-                                for (const [subKey, subValue] of Object.entries(value)) {
-                                    report += `- ${subKey}: ${subValue}\n`;
-                                }
-                                report += '\n';
-                            }
-                        }
-                        else {
-                            report += `- ${key}: ${value}\n`;
-                        }
-                    }
-                }
+            for (const [key, value] of Object.entries(check.result.details)) {
+                if (key === 'error')
+                    continue;
+                const formattedValue = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+                report += `- **${key}**: ${formattedValue}\n`;
             }
             report += '\n';
         }

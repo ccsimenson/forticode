@@ -2,7 +2,7 @@
   "name": "forticode",
   "version": "1.0.0",
   "description": "An Electron-based security auditing tool for CSP compliance.",
-  "main": "./dist/main/main.js",
+  "main": "./dist/main/main/main.js",
   "bin": {
     "forticode": "./cli.js"
   },
@@ -11,7 +11,7 @@
     "@modules": "./dist/modules"
   },
   "electron": {
-    "main": "./dist/main/main.js"
+    "main": "./dist/main/main/main.js"
   },
   "author": "Cory C.",
   "license": "MIT",
@@ -38,11 +38,11 @@
     "build:preload": "node scripts/build-preload.cjs",
     "build:main": "node scripts/build-main-simple.cjs",
     "build:renderer": "vite build",
-    "dev": "cross-env NODE_ENV=development PORT=5173 electronmon . --inspect=9229 --no-sandbox --enable-logging=stderr --trace-warnings",
+    "dev": "cross-env NODE_ENV=development VITE_DEV_SERVER_PORT=3001 ELECTRON_DISABLE_GPU=1 electronmon . --inspect=9229 --no-sandbox --js-flags=--max-old-space-size=4096 --disable-http-cache --disable-gpu --disable-software-rasterizer --disable-dev-shm-usage",
     "start": "electron .",
     "watch:main": "tsc -w -p tsconfig.main.json",
-    "watch:renderer": "vite --host",
-    "preview": "vite preview --port 3000",
+    "watch:renderer": "vite --host --debug",
+    "preview": "vite preview --port 3001",
     "package": "npm run build && electron-builder build --dir",
     "dist": "npm run build && electron-builder build",
     "postinstall": "electron-builder install-app-deps",

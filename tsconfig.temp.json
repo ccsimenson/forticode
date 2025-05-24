@@ -16,6 +16,9 @@
     "paths": {
       "@shared/*": [
         "../shared/*"
+      ],
+      "@modules/*": [
+        "../modules/*"
       ]
     },
     "types": [

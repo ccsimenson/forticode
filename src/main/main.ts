@@ -134,7 +134,8 @@ const createWindow = async () => {
     return;
   }
   // Get the correct path for the preload script
-  const preloadPath = process.env.NODE_ENV === 'development'
+  const isDev = process.env['NODE_ENV'] === 'development';
+  const preloadPath = isDev
     ? path.join(__dirname, 'preload.js') // In development, it's in the src/main directory
     : path.join(process.resourcesPath, 'app/dist/main/preload.js'); // In production, it's in the dist/main directory
   
@@ -154,23 +155,25 @@ const createWindow = async () => {
     show: false, // Don't show until ready-to-show
     width: 1200,
     height: 800,
+    backgroundColor: '#1a1b1e', // Match dark theme background
+    titleBarStyle: 'hidden', // Hide default title bar
+    frame: false, // Use custom frame
     webPreferences: {
       preload: preloadPath,
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true,
       webSecurity: true,
+      sandbox: true,
+      webgl: false, // Disable WebGL if not needed
+      disableBlinkFeatures: 'Auxclick',
+      backgroundThrottling: false, // Keep animations smooth when tab is not focused
+      disableHtmlFullscreenWindowResize: true,
+      enableWebSQL: false, // Disable WebSQL if not needed
       allowRunningInsecureContent: false,
-      webgl: false,
       nodeIntegrationInWorker: false,
       nodeIntegrationInSubFrames: false,
       scrollBounce: false,
-      // Additional security settings
-      enableWebSQL: false,
-      // Enable the contextBridge for secure IPC
-      // webviewTag is enabled only if needed
-      webviewTag: false,
-      // Additional security arguments
+      webviewTag: false, // Disable webview tag for security
       additionalArguments: [
         '--disable-http-cache',
         '--disable-http2',
@@ -179,9 +182,6 @@ const createWindow = async () => {
         '--no-sandbox'
       ]
     },
-    backgroundColor: '#1a1b1e', // Match dark theme background
-    titleBarStyle: 'hidden', // Hide default title bar
-    frame: false, // Use custom frame
     titleBarOverlay: {
       color: '#1a1b1e',
       symbolColor: '#ffffff',

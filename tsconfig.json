@@ -4,7 +4,7 @@
     "target": "ES2020",
     "module": "CommonJS",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "skipLibCheck": false,
+    "skipLibCheck": true,  // Skip type checking of declaration files for faster compilation
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "esModuleInterop": true,
