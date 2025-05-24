@@ -1,43 +1,40 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
-    "outDir": "./dist/main",
     /* Base Options */
     "target": "ES2020",
-    "module": "ESNext",
+    "module": "CommonJS",
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
-    "skipLibCheck": true,
+    "skipLibCheck": false,
     "moduleResolution": "node",
     "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
-    "noEmit": false,
     "jsx": "react-jsx",
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-
-    /* Paths */
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"],
-      "@main/*": ["src/main/*"],
-      "@renderer/*": ["src/renderer/*"],
-      "@shared/*": ["src/shared/*"],
-      "@modules/*": ["src/modules/*"],
-      "@utils/*": ["src/renderer/utils/*"],
-      "@features/*": ["src/renderer/features/*"],
-      "@/__mocks__/*": ["src/__mocks__/*"]
-    },
     "typeRoots": [
       "./node_modules/@types",
       "./src/types"
     ],
     "types": ["node"],
-    "allowSyntheticDefaultImports": true,
     "preserveSymlinks": true,
+
+    /* Paths and Directories */
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@main/*": ["./src/main/*"],
+      "@renderer/*": ["./src/renderer/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@modules/*": ["./src/modules/*"]
+    },
 
     /* Type Checking */
     "strictNullChecks": true,
@@ -55,8 +52,11 @@
     "sourceMap": true,
     "inlineSources": true,
     "inlineSourceMap": false,
-    "declaration": false,
-    "declarationMap": false,
+    "declaration": true,
+    "declarationMap": true,
+
+    /* Project References */
+    "composite": true,
 
     /* Additional Checks */
     "noUncheckedIndexedAccess": true,

@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SecurityUtils = void 0;
 class SecurityUtils {
     /**
      * Generate a human-readable report from scan results
@@ -76,5 +75,5 @@ class SecurityUtils {
         return vulnerabilities;
     }
 }
-exports.SecurityUtils = SecurityUtils;
+exports.default = SecurityUtils;
 //# sourceMappingURL=security-utils.js.map

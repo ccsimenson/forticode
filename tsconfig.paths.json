@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@main/*": ["./src/main/*"],
+      "@renderer/*": ["./src/renderer/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@modules/*": ["./src/modules/*"],
+      "@utils/*": ["./src/renderer/utils/*"],
+      "@features/*": ["./src/renderer/features/*"],
+      "@/__mocks__/*": ["./src/__mocks__/*"]
+    }
+  },
+  "include": [
+    "src/shared/**/*.ts"
+  ]
+}

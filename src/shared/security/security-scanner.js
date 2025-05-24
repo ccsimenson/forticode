@@ -1,6 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SecurityScanner = void 0;
 const electron_1 = require("electron");
 class SecurityScanner {
     createErrorResult(checkName, error) {
@@ -216,5 +215,5 @@ class SecurityScanner {
             config.sandbox === true;
     }
 }
-exports.SecurityScanner = SecurityScanner;
+exports.default = SecurityScanner;
 //# sourceMappingURL=security-scanner.js.map

@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { SecurityScanResult } from '../../../shared/security/types';
-import { SecurityUtils } from '../../../shared/security/security-utils';
+import type { SecurityScanResult, SecurityCheckResult } from '@shared/security/types';
+import SecurityUtils from '@shared/security/security-utils';
+
+interface SecurityCheckItem {
+    name: string;
+    result: SecurityCheckResult;
+    status: 'PASS' | 'FAIL' | 'ERROR';
+}
 
 interface SecurityScanResultsProps {
     onScanComplete?: (results: SecurityScanResult) => void;
 }
 
 const SecurityScanResults: React.FC<SecurityScanResultsProps> = ({ onScanComplete }) => {
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [scanResults, setScanResults] = useState<SecurityScanResult | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -15,11 +21,11 @@ const SecurityScanResults: React.FC<SecurityScanResultsProps> = ({ onScanComplet
         const runScan = async () => {
             try {
                 setIsLoading(true);
-                const scanner = await import('../../../shared/security/security-scanner');
-                const results = await scanner.SecurityScanner.getInstance().runFullScan();
+                const { default: SecurityScanner } = await import('@shared/security/security-scanner');
+                const results = await SecurityScanner.getInstance().runFullScan();
                 setScanResults(results);
                 if (onScanComplete) {
-                    onScanComplete(results as SecurityScanResult);
+                    onScanComplete(results);
                 }
             } catch (err) {
                 setError(err instanceof Error ? err.message : 'An error occurred during the scan');
@@ -86,21 +92,16 @@ const SecurityScanResults: React.FC<SecurityScanResultsProps> = ({ onScanComplet
     return (
         <div className="p-4">
             <div className="mb-4">
-                <h2 className="text-xl font-bold mb-2">Security Scan Results</h2>
-                <p className="text-gray-600">Last scan: {new Date(scanResults.timestamp).toLocaleString()}</p>
-            </div>
-
-            <div className="bg-white rounded-lg shadow p-4 mb-4">
-                <div className="flex items-center justify-between">
-                    <div className="text-2xl font-bold">Security Score</div>
-                    <div className={`px-4 py-2 rounded-full ${scoreColor} font-bold`}>
-                        {score}%
+                <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-xl font-bold">Security Scan Results</h2>
+                    <div className={`px-3 py-1 rounded-full text-sm font-semibold ${scoreColor}`}>
+                        Security Score: {score}%
                     </div>
                 </div>
+                <p className="text-gray-600">Last scan: {new Date(scanResults.timestamp).toLocaleString()}</p>
             </div>
-
             <div className="space-y-4">
-                {scanResults.checks.map((check, index) => (
+                {scanResults.checks.map((check: SecurityCheckItem, index: number) => (
                     <div key={index} className="bg-white rounded-lg shadow p-4">
                         <div className="flex items-center justify-between mb-2">
                             <h3 className="font-semibold">{check.name}</h3>

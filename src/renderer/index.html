@@ -27,11 +27,7 @@
 </head>
 <body>
   <div id="root"></div>
-  <!-- This script is required to make the window.electron API available in the renderer process -->
-  <script>
-    // This file is required for the renderer process to work properly.
-    // It's required because the `nodeIntegration` is turned off and `contextIsolation` is turned on.
-    // No code here is executed until the preload script has finished loading.
-  </script>
+  <!-- This script is the main entry point for the renderer process -->
+  <script type="module" src="./index.tsx"></script>
 </body>
 </html>

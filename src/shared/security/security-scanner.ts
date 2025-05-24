@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron';
 import { SecurityCheck, SecurityScanResult, NvdVulnerability as Vulnerability, SecurityHeaders, NodeSecurityConfig, ElectronSecurityConfig, ConfigFile, SecurityCheckResult } from './types';
 
-export class SecurityScanner {
+class SecurityScanner {
     private static instance: SecurityScanner;
     private checks: SecurityCheck[];
 
@@ -247,3 +247,5 @@ export class SecurityScanner {
                config.sandbox === true;
     }
 }
+
+export default SecurityScanner;

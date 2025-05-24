@@ -15,6 +15,8 @@ export interface SecurityCheckResult {
     errors: string[];
     configFiles?: ConfigFile[];
     details?: any;
+    severity?: 'critical' | 'high' | 'medium' | 'low' | 'info';
+    description?: string;
 }
 
 export interface SecurityScanResult {
